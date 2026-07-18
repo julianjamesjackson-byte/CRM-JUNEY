@@ -49,14 +49,27 @@ export const PairingView: React.FC = () => {
   const handlePairing = async (candidate: any) => {
     if (!selectedFacility) return;
     
+    // Evaluate Current State
+    const isAlreadyMatched = candidate.matchedJobs?.includes(selectedFacility.id);
+    
     setPairingStatus(prev => ({ ...prev, [candidate.id]: 'pairing' }));
     
     try {
       const apiKey = import.meta.env.VITE_AIRTABLE_ACCESS_TOKEN || import.meta.env.VITE_AIRTABLE_API_KEY;
       const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
       
-      const newMatchedJobs = [...(candidate.matchedJobs || []), selectedFacility.id];
-      const newSubmittedCandidates = [...(selectedFacility.submittedCandidates || []), candidate.id];
+      let newMatchedJobs;
+      let newSubmittedCandidates;
+
+      if (isAlreadyMatched) {
+        // Unpairing (Already Matched): filter out current facility
+        newMatchedJobs = (candidate.matchedJobs || []).filter((id: string) => id !== selectedFacility.id);
+        newSubmittedCandidates = (selectedFacility.submittedCandidates || []).filter((id: string) => id !== candidate.id);
+      } else {
+        // Pairing (Not Matched): append facility
+        newMatchedJobs = [...(candidate.matchedJobs || []), selectedFacility.id];
+        newSubmittedCandidates = [...(selectedFacility.submittedCandidates || []), candidate.id];
+      }
       
       const response = await fetch(`https://api.airtable.com/v0/${baseId}/Clinicians%20%26%20Candidates/${candidate.id}`, {
         method: 'PATCH',
@@ -81,7 +94,7 @@ export const PairingView: React.FC = () => {
       setFacilities(prev => prev.map(f => f.id === selectedFacility.id ? { ...f, submittedCandidates: newSubmittedCandidates } : f));
       setCandidates(prev => prev.map(c => c.id === candidate.id ? { ...c, matchedJobs: newMatchedJobs } : c));
       
-      setPairingStatus(prev => ({ ...prev, [candidate.id]: 'success' }));
+      setPairingStatus(prev => ({ ...prev, [candidate.id]: 'idle' }));
       
     } catch (error: any) {
       console.error("Pairing failed", error);
@@ -231,19 +244,19 @@ export const PairingView: React.FC = () => {
                     
                     <button 
                         onClick={() => handlePairing(candidate)}
-                        disabled={pairingStatus[candidate.id] === 'pairing' || pairingStatus[candidate.id] === 'success'}
+                        disabled={pairingStatus[candidate.id] === 'pairing'}
                         className={`w-full py-2.5 px-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${
-                          pairingStatus[candidate.id] === 'success' 
-                            ? 'bg-healthcare-emerald text-white shadow-sm shadow-healthcare-emerald/20' 
+                          candidate.matchedJobs?.includes(selectedFacility?.id) 
+                            ? 'bg-healthcare-emerald text-white shadow-sm hover:bg-healthcare-emerald/90' 
                             : pairingStatus[candidate.id] === 'pairing'
                               ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
                               : 'bg-healthcare-teal hover:bg-healthcare-teal/90 text-white shadow-sm shadow-healthcare-teal/20'
                         }`}
                       >
-                        {pairingStatus[candidate.id] === 'success' ? (
-                          <><CheckCircle2 size={18} /> Paired</>
-                        ) : pairingStatus[candidate.id] === 'pairing' ? (
-                          <><Loader2 size={18} className="animate-spin" /> Pairing...</>
+                        {pairingStatus[candidate.id] === 'pairing' ? (
+                          <><Loader2 size={18} className="animate-spin" /> Updating...</>
+                        ) : candidate.matchedJobs?.includes(selectedFacility?.id) ? (
+                          <><CheckCircle2 size={18} /> Paired (Click to Unpair)</>
                         ) : (
                           <><Link2 size={18} /> Pair Candidate</>
                         )}
