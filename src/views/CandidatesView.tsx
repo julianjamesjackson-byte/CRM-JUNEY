@@ -1,0 +1,169 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { UserCircle2, DollarSign, Stethoscope, FileText, X, Bot, CalendarClock, MessageSquare, PhoneCall } from 'lucide-react';
+
+// Mock data until Airtable connection is live
+const MOCK_CANDIDATES = [
+  { id: '1', name: 'Sarah Jenkins, RN', specialty: 'ICU / Critical Care', rate: 85, states: ['CA', 'TX'], status: 'Submitted' },
+  { id: '2', name: 'Dr. Michael Chen', specialty: 'Emergency Medicine', rate: 210, states: ['NY'], status: 'Interviewing' },
+  { id: '3', name: 'Elena Rodriguez, LPN', specialty: 'Pediatrics', rate: 45, states: ['FL', 'GA'], status: 'New Applicant' },
+  { id: '4', name: 'James Wilson, RT', specialty: 'Respiratory Therapy', rate: 65, states: ['WA', 'OR', 'CA'], status: 'Placed' },
+];
+
+const statusColors: Record<string, string> = {
+  'Placed': 'bg-healthcare-emerald/10 text-healthcare-emerald border-healthcare-emerald/20',
+  'Interviewing': 'bg-healthcare-blue/10 text-healthcare-blue border-healthcare-blue/20',
+  'Submitted': 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+  'New Applicant': 'bg-slate-100 text-slate-600 border-slate-200',
+};
+
+export const CandidatesView: React.FC = () => {
+  const [selectedCandidate, setSelectedCandidate] = useState<any | null>(null);
+
+  return (
+    <div className="p-8 max-w-7xl mx-auto animate-in fade-in duration-500">
+      <div className="flex justify-between items-end mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Candidate Roster</h1>
+          <p className="text-slate-500">Manage clinicians and AI outreach.</p>
+        </div>
+        <button className="bg-healthcare-teal hover:bg-healthcare-teal/90 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm shadow-healthcare-teal/20">
+          + Add Candidate
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {MOCK_CANDIDATES.map(candidate => (
+          <motion.div
+            key={candidate.id}
+            whileHover={{ y: -4, boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05)' }}
+            onClick={() => setSelectedCandidate(candidate)}
+            className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm cursor-pointer transition-all duration-300 flex flex-col"
+          >
+            <div className="flex justify-between items-start mb-4">
+              <UserCircle2 className="text-slate-300" size={48} />
+              <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${statusColors[candidate.status]}`}>
+                {candidate.status}
+              </span>
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 mb-1">{candidate.name}</h3>
+            <div className="flex items-center gap-1 text-slate-500 text-sm mb-4">
+              <Stethoscope size={14} />
+              {candidate.specialty}
+            </div>
+            
+            <div className="mt-auto space-y-3">
+              <div className="flex flex-wrap gap-1">
+                {candidate.states.map((state: string) => (
+                  <span key={state} className="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-md font-medium border border-slate-200">
+                    {state}
+                  </span>
+                ))}
+              </div>
+              <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                <span className="text-slate-400 text-sm">Desired Rate</span>
+                <div className="font-bold text-slate-800 flex items-center">
+                  <DollarSign size={16} className="text-healthcare-teal"/>
+                  {candidate.rate}/hr
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Slide-out Modal for Candidate Details */}
+      <AnimatePresence>
+        {selectedCandidate && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedCandidate(null)}
+              className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40"
+            />
+            <motion.div
+              initial={{ x: '100%', opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: '100%', opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed top-0 right-0 h-full w-[600px] bg-white shadow-2xl z-50 border-l border-slate-200 overflow-y-auto"
+            >
+              <div className="p-8">
+                <button 
+                  onClick={() => setSelectedCandidate(null)}
+                  className="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+                
+                <div className="flex items-center gap-4 mb-6">
+                  <UserCircle2 className="text-slate-300" size={64} />
+                  <div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold border inline-block mb-2 ${statusColors[selectedCandidate.status]}`}>
+                      {selectedCandidate.status}
+                    </span>
+                    <h2 className="text-3xl font-bold text-slate-900">{selectedCandidate.name}</h2>
+                  </div>
+                </div>
+
+                {/* AI Action Bar */}
+                <div className="bg-gradient-to-r from-healthcare-teal/10 to-healthcare-blue/10 rounded-2xl p-6 border border-healthcare-teal/20 mb-8">
+                  <div className="flex items-center gap-2 mb-4 text-healthcare-teal font-bold">
+                    <Bot size={20} />
+                    <span>AI Action Center</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <button className="bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold py-3 px-4 rounded-xl shadow-sm transition-all border border-slate-200 flex flex-col items-center gap-2">
+                      <CalendarClock size={18} className="text-healthcare-blue" />
+                      Schedule Booking
+                    </button>
+                    <button className="bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold py-3 px-4 rounded-xl shadow-sm transition-all border border-slate-200 flex flex-col items-center gap-2">
+                      <MessageSquare size={18} className="text-healthcare-teal" />
+                      Send Follow-Up
+                    </button>
+                    <button className="bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold py-3 px-4 rounded-xl shadow-sm transition-all border border-slate-200 flex flex-col items-center gap-2">
+                      <PhoneCall size={18} className="text-amber-500" />
+                      Cold Call Script
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-8">
+                  <section>
+                    <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2 mb-4">Professional Details</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <span className="text-xs text-slate-500 font-medium uppercase tracking-wider block mb-1">Specialty</span>
+                        <div className="font-semibold text-slate-800 flex items-center gap-2">
+                          <Stethoscope size={16} className="text-healthcare-teal"/>
+                          {selectedCandidate.specialty}
+                        </div>
+                      </div>
+                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <span className="text-xs text-slate-500 font-medium uppercase tracking-wider block mb-1">Desired Rate</span>
+                        <div className="font-semibold text-slate-800 flex items-center gap-2">
+                          <DollarSign size={16} className="text-healthcare-emerald"/>
+                          ${selectedCandidate.rate}/hr
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section>
+                    <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2 mb-4">Resume / CV</h3>
+                    <button className="w-full bg-slate-50 border-2 border-dashed border-slate-200 hover:border-healthcare-teal hover:bg-healthcare-teal/5 text-slate-600 font-medium py-6 px-4 rounded-xl flex flex-col items-center justify-center gap-3 transition-all">
+                      <FileText size={32} className="text-slate-400" />
+                      <span>View Resume Document</span>
+                    </button>
+                  </section>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
