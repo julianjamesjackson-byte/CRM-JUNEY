@@ -52,33 +52,41 @@ export const PairingView: React.FC = () => {
     setPairingStatus(prev => ({ ...prev, [candidate.id]: 'pairing' }));
     
     try {
-      // Create new arrays by combining existing links with the new ID
-      const newSubmittedCandidates = [...(selectedFacility.submittedCandidates || []), candidate.id];
+      const apiKey = import.meta.env.VITE_AIRTABLE_ACCESS_TOKEN || import.meta.env.VITE_AIRTABLE_API_KEY;
+      const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
+      
       const newMatchedJobs = [...(candidate.matchedJobs || []), selectedFacility.id];
+      const newSubmittedCandidates = [...(selectedFacility.submittedCandidates || []), candidate.id];
       
-      // We must patch both tables
-      await Promise.all([
-        updateRecord('Facilities & Clients', selectedFacility.id, {
-          'Submitted Candidates': newSubmittedCandidates
-        }),
-        updateRecord('Clinicians & Candidates', candidate.id, {
-          'Matched Job Orders': newMatchedJobs
+      const response = await fetch(`https://api.airtable.com/v0/${baseId}/Clinicians%20%26%20Candidates/${candidate.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          fields: {
+            "Matched Job Orders": newMatchedJobs
+          },
+          typecast: true
         })
-      ]);
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
+      }
       
-      // Update local state to reflect the link
+      // Update local state to reflect the link bidirectionally in the UI
       setFacilities(prev => prev.map(f => f.id === selectedFacility.id ? { ...f, submittedCandidates: newSubmittedCandidates } : f));
       setCandidates(prev => prev.map(c => c.id === candidate.id ? { ...c, matchedJobs: newMatchedJobs } : c));
       
       setPairingStatus(prev => ({ ...prev, [candidate.id]: 'success' }));
-      setTimeout(() => {
-        setPairingStatus(prev => ({ ...prev, [candidate.id]: 'idle' }));
-      }, 3000);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error("Pairing failed", error);
       setPairingStatus(prev => ({ ...prev, [candidate.id]: 'idle' }));
-      alert("Failed to pair candidate. Check Airtable field names for Linked Records.");
+      alert("Pairing Failed: " + (error.response?.data?.error?.message || error.message || String(error)));
     }
   };
 
@@ -222,24 +230,24 @@ export const PairingView: React.FC = () => {
                     </div>
                     
                     <button 
-                      onClick={() => handlePairing(candidate)}
-                      disabled={pairingStatus[candidate.id] === 'pairing' || pairingStatus[candidate.id] === 'success'}
-                      className={`w-full py-2.5 px-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${
-                        pairingStatus[candidate.id] === 'success' 
-                          ? 'bg-healthcare-emerald text-white shadow-sm shadow-healthcare-emerald/20' 
-                          : pairingStatus[candidate.id] === 'pairing'
-                            ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                            : 'bg-healthcare-teal hover:bg-healthcare-teal/90 text-white shadow-sm shadow-healthcare-teal/20'
-                      }`}
-                    >
-                      {pairingStatus[candidate.id] === 'success' ? (
-                        <><CheckCircle2 size={18} /> Paired Successfully</>
-                      ) : pairingStatus[candidate.id] === 'pairing' ? (
-                        <><Loader2 className="animate-spin" size={18} /> Pairing...</>
-                      ) : (
-                        <><Link2 size={18} /> Pair Candidate</>
-                      )}
-                    </button>
+                        onClick={() => handlePairing(candidate)}
+                        disabled={pairingStatus[candidate.id] === 'pairing' || pairingStatus[candidate.id] === 'success'}
+                        className={`w-full py-2.5 px-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${
+                          pairingStatus[candidate.id] === 'success' 
+                            ? 'bg-healthcare-emerald text-white shadow-sm shadow-healthcare-emerald/20' 
+                            : pairingStatus[candidate.id] === 'pairing'
+                              ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                              : 'bg-healthcare-teal hover:bg-healthcare-teal/90 text-white shadow-sm shadow-healthcare-teal/20'
+                        }`}
+                      >
+                        {pairingStatus[candidate.id] === 'success' ? (
+                          <><CheckCircle2 size={18} /> Paired</>
+                        ) : pairingStatus[candidate.id] === 'pairing' ? (
+                          <><Loader2 size={18} className="animate-spin" /> Pairing...</>
+                        ) : (
+                          <><Link2 size={18} /> Pair Candidate</>
+                        )}
+                      </button>
                   </div>
                 ))}
               </div>
