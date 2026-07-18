@@ -96,6 +96,61 @@ export const PartnersView: React.FC = () => {
     }
   };
 
+  const handleStatusChange = async (partnerId: string, newStatus: string) => {
+    // Find the current partner to allow reverting
+    const currentPartner = partners.find(p => p.id === partnerId);
+    if (!currentPartner) return;
+    const oldStatus = currentPartner['Partnership Status'] || currentPartner.status;
+
+    // Optimistic UI update
+    setPartners(prev => prev.map(p => {
+      if (p.id === partnerId) {
+        return { ...p, 'Partnership Status': newStatus, status: newStatus };
+      }
+      return p;
+    }));
+    if (selectedPartner && selectedPartner.id === partnerId) {
+      setSelectedPartner((prev: any) => ({ ...prev, 'Partnership Status': newStatus, status: newStatus }));
+    }
+
+    try {
+      const apiKey = import.meta.env.VITE_AIRTABLE_ACCESS_TOKEN || import.meta.env.VITE_AIRTABLE_API_KEY;
+      const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
+      
+      const response = await fetch(`https://api.airtable.com/v0/${baseId}/Recruiting%20Partners/${partnerId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          fields: {
+            "Partnership Status": newStatus
+          },
+          typecast: true
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
+      }
+    } catch (error: any) {
+      console.error("Failed to update status", error);
+      // Revert Optimistic UI
+      setPartners(prev => prev.map(p => {
+        if (p.id === partnerId) {
+          return { ...p, 'Partnership Status': oldStatus, status: oldStatus };
+        }
+        return p;
+      }));
+      if (selectedPartner && selectedPartner.id === partnerId) {
+        setSelectedPartner((prev: any) => ({ ...prev, 'Partnership Status': oldStatus, status: oldStatus }));
+      }
+      alert("Status Update Failed: " + (error.response?.data?.error?.message || error.message || String(error)));
+    }
+  };
+
   const handleUpdate = async (fieldToUpdate: string, value: any) => {
     if (!selectedPartner) return;
     setIsSaving(true);
@@ -327,7 +382,16 @@ export const PartnersView: React.FC = () => {
                     </div>
                     <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 col-span-2">
                       <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Partnership Status</span>
-                      <span className="text-sm font-medium text-slate-800">{renderField(selectedPartner['Partnership Status'])}</span>
+                      <select
+                        value={selectedPartner['Partnership Status'] || 'Pending Review'}
+                        onChange={(e) => handleStatusChange(selectedPartner.id, e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-healthcare-teal/20 focus:border-healthcare-teal bg-white transition-all text-sm font-medium text-slate-800"
+                      >
+                        <option value="Pending Review">Pending Review</option>
+                        <option value="Qualification Meeting">Qualification Meeting</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Rejected">Rejected</option>
+                      </select>
                     </div>
                   </div>
                 </section>
