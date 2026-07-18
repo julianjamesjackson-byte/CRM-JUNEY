@@ -46,6 +46,23 @@ export const updateRecord = async (tableName: string, recordId: string, fields: 
   }
 };
 
+export const createRecord = async (tableName: string, fields: Partial<any>) => {
+  try {
+    if (apiKey === 'dummy_api_key_for_now') {
+      console.log(`Mock Create - Table: ${tableName}`, fields);
+      return { id: 'mock_' + Date.now(), ...fields };
+    }
+
+    const createdRecords = await base(tableName).create([
+      { fields }
+    ]);
+    return { id: createdRecords[0].id, ...createdRecords[0].fields };
+  } catch (error) {
+    console.error(`Error creating record in ${tableName}:`, error);
+    throw error;
+  }
+};
+
 // Specialized fetchers
 export const fetchFacilities = () => fetchRecords('Facilities & Clients');
 export const fetchCandidates = () => fetchRecords('Clinicians & Candidates');
