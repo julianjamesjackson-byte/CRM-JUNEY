@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Building2, MapPin, Stethoscope, FileText, X, Phone, Mail } from 'lucide-react';
-import { fetchFacilities, updateRecord } from '../lib/airtable';
+import { fetchFacilities } from '../lib/airtable';
 
 const statusColors: Record<string, string> = {
   'Active Client': 'bg-healthcare-emerald/10 text-healthcare-emerald border-healthcare-emerald/20',
@@ -19,11 +19,11 @@ export const FacilitiesView: React.FC = () => {
       try {
         const data = await fetchFacilities();
         // Map Airtable fields to our component's expected structure if necessary
-        const mappedData = data.map(record => ({
+        const mappedData = data.map((record: any) => ({
           id: record.id,
-          name: record['Facility Name'] || record.name || record.Name || 'Unnamed Facility',
-          type: record['Facility Type'] || record.type || record.Type || 'Hospital',
-          openings: record['Openings'] || record.openings || 0,
+          name: record['Facility / Organization Name'] || 'Unnamed Facility',
+          type: record['Facility Type'] || 'Hospital',
+          openings: record['Number of Openings'] || 0,
           status: record['Status'] || record.status || 'Lead',
           location: record['Location'] || record.location || 'Unknown'
         }));

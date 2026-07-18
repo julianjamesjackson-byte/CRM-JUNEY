@@ -20,13 +20,13 @@ export const PipelineView: React.FC = () => {
     const loadData = async () => {
       try {
         const data = await fetchCandidates();
-        const mappedData = data.map(record => ({
+        const mappedData = data.map((record: any) => ({
           id: record.id,
-          name: record['Name'] || record.name || record['Candidate Name'] || 'Unknown Candidate',
-          specialty: record['Specialty'] || record.specialty || 'General',
-          rate: record['Desired Hourly Rate'] || record['Rate'] || record.rate || 0,
-          states: record['State(s) Licensed'] ? (Array.isArray(record['State(s) Licensed']) ? record['State(s) Licensed'] : [record['State(s) Licensed']]) : (record.states || []),
-          status: record['Status'] || record['Candidate Status'] || record.status || 'New Applicant'
+          name: record['Applicant Name'] || 'Unknown Candidate',
+          specialty: record['Specialty'] || 'General',
+          rate: record['Desired Hourly Rate'] || record['Rate'] || 0,
+          states: record['State(s) Licensed'] ? (Array.isArray(record['State(s) Licensed']) ? record['State(s) Licensed'] : [record['State(s) Licensed']]) : [],
+          status: record['Candidate Status'] || 'New Applicant'
         }));
         setCandidates(mappedData);
       } catch (error) {
@@ -55,7 +55,7 @@ export const PipelineView: React.FC = () => {
     setIsUpdating(true);
     try {
       // Trigger PATCH to Airtable
-      await updateRecord('Clinicians & Candidates', draggableId, { Status: newStatus });
+      await updateRecord('Clinicians & Candidates', draggableId, { 'Candidate Status': newStatus });
       console.log(`Successfully updated ${draggableId} to status ${newStatus}`);
     } catch (error) {
       console.error("Failed to sync status update to Airtable", error);
@@ -138,7 +138,7 @@ export const PipelineView: React.FC = () => {
                                     <span className="truncate">{candidate.specialty}</span>
                                   </div>
                                   <div className="flex flex-wrap gap-1">
-                                    {candidate.states.map(state => (
+                                    {candidate.states.map((state: string) => (
                                       <span key={state} className="bg-slate-100 text-slate-600 text-[10px] px-1.5 py-0.5 rounded font-medium border border-slate-200">
                                         {state}
                                       </span>

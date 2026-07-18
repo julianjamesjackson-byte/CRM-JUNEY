@@ -19,13 +19,13 @@ export const CandidatesView: React.FC = () => {
     const loadData = async () => {
       try {
         const data = await fetchCandidates();
-        const mappedData = data.map(record => ({
+        const mappedData = data.map((record: any) => ({
           id: record.id,
-          name: record['Name'] || record.name || record['Candidate Name'] || 'Unknown Candidate',
-          specialty: record['Specialty'] || record.specialty || 'General',
-          rate: record['Desired Hourly Rate'] || record['Rate'] || record.rate || 0,
-          states: record['State(s) Licensed'] ? (Array.isArray(record['State(s) Licensed']) ? record['State(s) Licensed'] : [record['State(s) Licensed']]) : (record.states || []),
-          status: record['Status'] || record['Candidate Status'] || record.status || 'New Applicant'
+          name: record['Applicant Name'] || 'Unknown Candidate',
+          specialty: record['Specialty'] || 'General',
+          rate: record['Desired Hourly Rate'] || record['Rate'] || 0,
+          states: record['State(s) Licensed'] ? (Array.isArray(record['State(s) Licensed']) ? record['State(s) Licensed'] : [record['State(s) Licensed']]) : [],
+          status: record['Candidate Status'] || 'New Applicant'
         }));
         setCandidates(mappedData);
       } catch (error) {

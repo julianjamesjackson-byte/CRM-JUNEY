@@ -16,9 +16,11 @@ export const fetchRecords = async (tableName: string, view = 'Grid view') => {
     if (apiKey === 'dummy_api_key_for_now') return [];
     
     const records = await base(tableName).select({ view }).all();
-    return records.map(record => ({ id: record.id, ...record.fields }));
+    const formattedRecords = records.map(record => ({ id: record.id, ...record.fields }));
+    console.log(`Airtable Response (${tableName}):`, formattedRecords);
+    return formattedRecords;
   } catch (error) {
-    console.error(`Error fetching from ${tableName}:`, error);
+    console.error("Airtable Error:", error);
     throw error;
   }
 };
