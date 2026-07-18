@@ -104,7 +104,10 @@ export const FacilitiesView: React.FC = () => {
       setFacilities(prev => [newMappedFacility, ...prev]);
       setIsAddModalOpen(false);
       setNewFacility({ name: '', type: 'Hospital', status: 'Lead' });
-    } catch (error) {
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.error?.message || error.message || String(error);
+      alert("CRITICAL API ERROR: " + errorMsg);
+      console.log("Full Server Error Response:", error.response?.data || error);
       console.error("Failed to create facility", error);
     } finally {
       setIsCreating(false);
