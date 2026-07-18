@@ -19,7 +19,7 @@ export const PairingView: React.FC = () => {
           name: record['Facility / Organization Name'] || record['Facility Name'] || record.name || 'Unnamed Facility',
           positionTitle: record['Position Title'] || 'General Nursing',
           specialtyRequired: record['Specialty'] || record['Specialty Required'] || record['Position Title'] || 'General',
-          state: record['State'] || (record['Location'] || '').split(',').pop()?.trim() || 'Unknown',
+          location: record['City'] && record['State'] ? `${record['City']}, ${record['State']}` : record['Address'] || 'No location provided',
           submittedCandidates: record['Submitted Candidates'] || [],
           rawRecord: record
         }));
@@ -81,16 +81,15 @@ export const PairingView: React.FC = () => {
     }
   };
 
-  // Smart Filtering Logic: Specialty matching Job's required specialty or title
+  // Smart Filtering Logic: Specialty perfectly matching Job's required specialty
   const filteredCandidates = selectedFacility ? candidates.filter(c => {
     // Avoid re-pairing if already matched
     if (selectedFacility.submittedCandidates?.includes(c.id)) return false;
     
-    const candSpec = (c.specialty || '').toLowerCase();
-    const reqSpec = (selectedFacility.specialtyRequired || '').toLowerCase();
-    const jobTitle = (selectedFacility.positionTitle || '').toLowerCase();
+    const candSpec = (c.specialty || '').toLowerCase().trim();
+    const reqSpec = (selectedFacility.specialtyRequired || '').toLowerCase().trim();
     
-    return candSpec.includes(reqSpec) || reqSpec.includes(candSpec) || jobTitle.includes(candSpec) || candSpec.includes(jobTitle);
+    return candSpec === reqSpec;
   }) : [];
 
   if (isLoading) {
@@ -129,7 +128,7 @@ export const PairingView: React.FC = () => {
                 <div className="text-healthcare-teal font-semibold text-sm mb-2">{facility.positionTitle}</div>
                 <div className="flex items-center justify-between text-xs text-slate-500">
                   <span className="flex items-center gap-1"><Stethoscope size={12}/> {facility.specialtyRequired}</span>
-                  <span className="flex items-center gap-1"><MapPin size={12}/> {facility.state}</span>
+                  <span className="flex items-center gap-1"><MapPin size={12}/> {facility.location}</span>
                 </div>
               </div>
             ))}
@@ -164,7 +163,7 @@ export const PairingView: React.FC = () => {
               </div>
             ) : filteredCandidates.length === 0 ? (
               <div className="h-full flex items-center justify-center text-slate-400 font-medium">
-                No new matches found for this specialty.
+                No candidates found matching this specialty.
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
