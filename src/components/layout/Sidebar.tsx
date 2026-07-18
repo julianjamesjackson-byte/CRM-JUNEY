@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Building2, Users, KanbanSquare, Handshake, Link2, Menu } from 'lucide-react';
+import { LayoutDashboard, Building2, Users, KanbanSquare, Handshake, Link2, Menu, Sun, Moon } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -22,6 +22,31 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleCollapse }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  useEffect(() => {
+    // Check system preference or localStorage on initial load
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
+    } else {
+      setIsDarkMode(false);
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
+  const toggleDarkMode = () => {
+    if (isDarkMode) {
+      document.documentElement.classList.remove('dark');
+      localStorage.theme = 'light';
+      setIsDarkMode(false);
+    } else {
+      document.documentElement.classList.add('dark');
+      localStorage.theme = 'dark';
+      setIsDarkMode(true);
+    }
+  };
+
   const isExpanded = !isCollapsed || isHovered;
 
   const handleToggle = () => {
@@ -90,7 +115,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleCollapse })
         ))}
       </nav>
       
-      <div className="p-4 border-t border-slate-100">
+      <div className="p-4 border-t border-slate-100 flex flex-col gap-2">
+        <button 
+          onClick={toggleDarkMode}
+          className={cn(
+            "flex items-center gap-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 text-slate-500 hover:bg-slate-50 hover:text-slate-900",
+            isExpanded ? "px-4" : "justify-center"
+          )}
+          title="Toggle Dark Mode"
+        >
+          <div className="shrink-0">{isDarkMode ? <Sun size={20} /> : <Moon size={20} />}</div>
+          {isExpanded && <span className="whitespace-nowrap">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>}
+        </button>
+        
         <div className={cn("flex items-center gap-3 py-3", isExpanded ? "px-4" : "justify-center")}>
           <div className="shrink-0 w-8 h-8 rounded-full bg-healthcare-teal/20 flex items-center justify-center text-healthcare-teal font-bold">
             JD
