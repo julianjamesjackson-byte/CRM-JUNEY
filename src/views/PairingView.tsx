@@ -93,9 +93,9 @@ export const PairingView: React.FC = () => {
     // Avoid re-pairing if already matched
     if (selectedFacility.submittedCandidates?.includes(candidate.id)) return false;
 
-    // 1. Safely extract values, handling Airtable arrays or undefined fields
-    const rawSpecialty = candidate?.fields?.['Specialty'] || candidate?.['Specialty'] || candidate?.rawRecord?.['Specialty'];
-    const rawProfession = candidate?.fields?.['Profession'] || candidate?.['Profession'] || candidate?.rawRecord?.['Profession'];
+    // 1. Safely extract values using the confirmed lowercase root keys first
+    const rawSpecialty = candidate?.specialty || candidate?.fields?.['Specialty'] || candidate?.rawRecord?.['Specialty'];
+    const rawProfession = candidate?.profession || candidate?.fields?.['Profession'] || candidate?.rawRecord?.['Profession'];
     
     const specialtyStr = Array.isArray(rawSpecialty) ? rawSpecialty.join(' ') : (rawSpecialty || '');
     const professionStr = Array.isArray(rawProfession) ? rawProfession.join(' ') : (rawProfession || '');
