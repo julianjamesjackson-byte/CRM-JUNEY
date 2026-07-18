@@ -27,6 +27,7 @@ export const PairingView: React.FC = () => {
         const mappedCand = candData.map((record: any) => ({
           id: record.id,
           name: record['Applicant Name'] || record['Name'] || record['Candidate Name'] || 'Unknown Candidate',
+          profession: record['Profession'] || '',
           specialty: record['Specialty'] || 'General',
           rate: record['Desired Hourly Rate'] || record['Rate'] || 0,
           states: record['State(s) Licensed'] ? (Array.isArray(record['State(s) Licensed']) ? record['State(s) Licensed'] : [record['State(s) Licensed']]) : [],
@@ -81,15 +82,26 @@ export const PairingView: React.FC = () => {
     }
   };
 
-  // Smart Filtering Logic: Specialty perfectly matching Job's required specialty
+  // Smart Filtering Logic: Specialty matching Job's required specialty (Fuzzy Substring Matching)
   const filteredCandidates = selectedFacility ? candidates.filter(c => {
     // Avoid re-pairing if already matched
     if (selectedFacility.submittedCandidates?.includes(c.id)) return false;
     
     const candSpec = (c.specialty || '').toLowerCase().trim();
+    const candProf = (c.profession || '').toLowerCase().trim();
     const reqSpec = (selectedFacility.specialtyRequired || '').toLowerCase().trim();
     
-    return candSpec === reqSpec;
+    if (!candSpec) return false;
+
+    // Primary Check: Does the Job Order string include the candidate's specialty string?
+    let isMatch = reqSpec.includes(candSpec);
+
+    // Highly accurate match: Check if the Job Order string ALSO includes the profession (if present)
+    if (isMatch && candProf) {
+      isMatch = reqSpec.includes(candProf);
+    }
+    
+    return isMatch;
   }) : [];
 
   if (isLoading) {
