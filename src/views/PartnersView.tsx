@@ -40,15 +40,12 @@ export const PartnersView: React.FC = () => {
           const fields = record.fields || record;
           return {
             id: record.id,
-            name: fields['Recruiting Firm'] || fields['Firm Name'] || fields.name || 'Unnamed Firm',
-            contact: fields['Primary Contact'] || fields['Contact Name'] || 'No Contact Listed',
-            email: fields['Email'] || fields['Contact Email'] || 'No Email',
-            status: fields['Partnership Status'] || fields['Status'] || 'Prospect',
-            submittedCandidates: fields['Submitted Candidates'] || [],
-            expectedVolume: fields['Expected Monthly Submission Volume'] || fields['Expected Volume'] || 0,
-            followUpLog: fields['CRM Follow-Up Log'] || fields['Notes'] || ''
+            rawRecord: fields,
+            ...fields
           };
         });
+        
+        console.log("🔍 RAW PARTNER DATA:", mappedPartners[0]);
         
         setPartners(mappedPartners);
       } catch (error) {
@@ -62,8 +59,8 @@ export const PartnersView: React.FC = () => {
 
   const openPartnerDrawer = (partner: any) => {
     setSelectedPartner(partner);
-    setFollowUpLog(partner.followUpLog);
-    setExpectedVolume(partner.expectedVolume);
+    setFollowUpLog(partner['CRM Follow-Up Log'] || partner['Notes'] || '');
+    setExpectedVolume(partner['Expected Monthly Submission Volume'] || partner['Expected Volume'] || 0);
   };
 
   const closeDrawer = () => {
@@ -161,28 +158,28 @@ export const PartnersView: React.FC = () => {
                 <div className="w-12 h-12 rounded-xl bg-healthcare-teal/10 flex items-center justify-center text-healthcare-teal">
                   <Handshake size={24} />
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${statusColors[partner.status] || 'bg-slate-100 text-slate-600'}`}>
-                  {partner.status}
+                <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${statusColors[partner['Partnership Status'] || partner['Status'] || 'Prospect'] || 'bg-slate-100 text-slate-600'}`}>
+                  {partner['Partnership Status'] || partner['Status'] || 'Prospect'}
                 </span>
               </div>
               
-              <h3 className="text-xl font-bold text-slate-900 mb-1">{partner.name}</h3>
+              <h3 className="text-xl font-bold text-slate-900 mb-1">{partner['Recruiting Firm'] || partner['Firm Name'] || partner.name || 'Unnamed Firm'}</h3>
               
               <div className="mt-4 space-y-2 flex-1">
                 <div className="flex items-center gap-2 text-slate-600 text-sm">
                   <UserCircle2 size={16} className="text-slate-400" />
-                  <span className="font-medium text-slate-700">{partner.contact}</span>
+                  <span className="font-medium text-slate-700">{partner['Primary Contact'] || partner['Contact Name'] || partner.contactName || 'No Contact Listed'}</span>
                 </div>
                 <div className="flex items-center gap-2 text-slate-600 text-sm">
                   <Mail size={16} className="text-slate-400" />
-                  <span className="truncate">{partner.email}</span>
+                  <span className="truncate">{partner['Email'] || partner['Contact Email'] || partner.email || 'No Email'}</span>
                 </div>
               </div>
               
               <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
                 <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Submissions</span>
                 <span className="bg-slate-100 text-slate-700 font-bold px-2.5 py-1 rounded-lg text-sm">
-                  {partner.submittedCandidates?.length || 0} candidates
+                  {(partner['Submitted Candidates'] || []).length} candidates
                 </span>
               </div>
             </motion.div>
@@ -213,7 +210,7 @@ export const PartnersView: React.FC = () => {
                   <div className="p-2 bg-healthcare-teal/10 rounded-lg text-healthcare-teal">
                     <Handshake size={20} />
                   </div>
-                  <h2 className="text-xl font-bold text-slate-900">{selectedPartner.name}</h2>
+                  <h2 className="text-xl font-bold text-slate-900">{selectedPartner['Recruiting Firm'] || selectedPartner['Firm Name'] || selectedPartner.name || 'Unnamed Firm'}</h2>
                 </div>
                 <button
                   onClick={closeDrawer}
@@ -245,7 +242,8 @@ export const PartnersView: React.FC = () => {
                         value={expectedVolume}
                         onChange={(e) => setExpectedVolume(e.target.value)}
                         onBlur={() => {
-                          if (expectedVolume !== selectedPartner.expectedVolume) {
+                          const currentVol = selectedPartner['Expected Monthly Submission Volume'] || selectedPartner['Expected Volume'] || 0;
+                          if (expectedVolume !== currentVol) {
                             handleUpdate('expectedVolume', Number(expectedVolume));
                           }
                         }}
@@ -263,7 +261,8 @@ export const PartnersView: React.FC = () => {
                         value={followUpLog}
                         onChange={(e) => setFollowUpLog(e.target.value)}
                         onBlur={() => {
-                          if (followUpLog !== selectedPartner.followUpLog) {
+                          const currentLog = selectedPartner['CRM Follow-Up Log'] || selectedPartner['Notes'] || '';
+                          if (followUpLog !== currentLog) {
                             handleUpdate('followUpLog', followUpLog);
                           }
                         }}
@@ -281,12 +280,12 @@ export const PartnersView: React.FC = () => {
                   </h3>
                   
                   <div className="space-y-3">
-                    {!selectedPartner.submittedCandidates || selectedPartner.submittedCandidates.length === 0 ? (
+                    {!selectedPartner['Submitted Candidates'] || selectedPartner['Submitted Candidates'].length === 0 ? (
                       <p className="text-slate-500 text-sm italic p-4 bg-slate-50 rounded-xl border border-slate-100 text-center">
                         This partner hasn't submitted any candidates yet.
                       </p>
                     ) : (
-                      selectedPartner.submittedCandidates.map((candId: string) => (
+                      selectedPartner['Submitted Candidates'].map((candId: string) => (
                         <div key={candId} className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-slate-300 transition-colors">
                           <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
                             <UserCircle2 size={16} />
