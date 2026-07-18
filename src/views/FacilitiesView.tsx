@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Building2, MapPin, Stethoscope, FileText, X, Phone, Mail, Loader2, Check, Trash2 } from 'lucide-react';
-import { fetchFacilities, updateRecord, createRecord, deleteRecord } from '../lib/airtable';
+import { fetchFacilities, updateRecord, deleteRecord } from '../lib/airtable';
 
 const statusColors: Record<string, string> = {
   'Active Client': 'bg-healthcare-emerald/10 text-healthcare-emerald border-healthcare-emerald/20',
@@ -14,10 +14,6 @@ export const FacilitiesView: React.FC = () => {
   const [selectedFacility, setSelectedFacility] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Add Facility State
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
-  const [newFacility, setNewFacility] = useState({ name: '', type: 'Hospital', status: 'Lead' });
 
   // Note Saving State
   const [isSavingNote, setIsSavingNote] = useState(false);
@@ -77,42 +73,7 @@ export const FacilitiesView: React.FC = () => {
     }
   };
 
-  const handleCreateFacility = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsCreating(true);
-    try {
-      const record = await createRecord('Facilities & Clients', {
-        'Facility / Organization Name': newFacility.name,
-        'Facility Type': newFacility.type,
-        'Lead Status': newFacility.status
-      });
-      
-      const newMappedFacility = {
-        id: record.id,
-        name: record['Facility / Organization Name'],
-        type: record['Facility Type'],
-        status: record['Lead Status'] || newFacility.status,
-        openings: 0,
-        location: 'Location not specified',
-        phone: '',
-        email: '',
-        notes: '',
-        agreements: [],
-        invoices: []
-      };
-      
-      setFacilities(prev => [newMappedFacility, ...prev]);
-      setIsAddModalOpen(false);
-      setNewFacility({ name: '', type: 'Hospital', status: 'Lead' });
-    } catch (error: any) {
-      const errorMsg = error.response?.data?.error?.message || error.message || String(error);
-      alert("CRITICAL API ERROR: " + errorMsg);
-      console.log("Full Server Error Response:", error.response?.data || error);
-      console.error("Failed to create facility", error);
-    } finally {
-      setIsCreating(false);
-    }
-  };
+
 
   const handleDeleteFacility = async () => {
     if (!selectedFacility) return;
@@ -166,12 +127,6 @@ export const FacilitiesView: React.FC = () => {
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Facility Hub</h1>
           <p className="text-slate-500">Manage clients, hospitals, and job openings.</p>
         </div>
-        <button 
-          onClick={() => setIsAddModalOpen(true)}
-          className="bg-healthcare-teal hover:bg-healthcare-teal/90 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm shadow-healthcare-teal/20"
-        >
-          + Add Facility
-        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -306,94 +261,7 @@ export const FacilitiesView: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Add Facility Modal */}
-      <AnimatePresence>
-        {isAddModalOpen && (
-          <>
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => !isCreating && setIsAddModalOpen(false)}
-              className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            >
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
-                onClick={(e) => e.stopPropagation()}
-                className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200"
-              >
-                <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-                  <h3 className="text-xl font-bold text-slate-900">Add New Facility</h3>
-                  <button onClick={() => !isCreating && setIsAddModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
-                    <X size={20} />
-                  </button>
-                </div>
-                
-                <form onSubmit={handleCreateFacility} className="p-6 space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Facility Name</label>
-                    <input 
-                      type="text" 
-                      required
-                      value={newFacility.name}
-                      onChange={(e) => setNewFacility({...newFacility, name: e.target.value})}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-healthcare-teal/50 text-slate-900"
-                      placeholder="e.g. Mercy Valley Hospital"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Facility Type</label>
-                    <select 
-                      value={newFacility.type}
-                      onChange={(e) => setNewFacility({...newFacility, type: e.target.value})}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-healthcare-teal/50 text-slate-900"
-                    >
-                      <option>Hospital</option>
-                      <option>Clinic</option>
-                      <option>Specialty Center</option>
-                      <option>Skilled Nursing</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
-                    <select 
-                      value={newFacility.status}
-                      onChange={(e) => setNewFacility({...newFacility, status: e.target.value})}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-healthcare-teal/50 text-slate-900"
-                    >
-                      <option>Lead</option>
-                      <option>Negotiating</option>
-                      <option>Active Client</option>
-                    </select>
-                  </div>
-                  
-                  <div className="pt-4 flex gap-3">
-                    <button 
-                      type="button"
-                      onClick={() => setIsAddModalOpen(false)}
-                      disabled={isCreating}
-                      className="flex-1 py-2.5 border border-slate-200 text-slate-600 font-medium rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
-                    >
-                      Cancel
-                    </button>
-                    <button 
-                      type="submit"
-                      disabled={isCreating}
-                      className="flex-1 py-2.5 bg-healthcare-teal text-white font-medium rounded-lg hover:bg-healthcare-teal/90 transition-colors disabled:opacity-50 flex justify-center items-center gap-2"
-                    >
-                      {isCreating ? <><Loader2 size={16} className="animate-spin" /> Creating...</> : 'Add Facility'}
-                    </button>
-                  </div>
-                </form>
-              </motion.div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+
     </div>
   );
 };
