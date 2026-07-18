@@ -43,6 +43,9 @@ export const updateRecord = async (tableName: string, recordId: string, fields: 
   } catch (error) {
     console.error(`Error updating record ${recordId} in ${tableName}:`, error);
     throw error;
+  }
+};
+
 export const createRecord = async (tableName: string, fields: Partial<any>) => {
   try {
     if (apiKey === 'dummy_api_key_for_now') {
