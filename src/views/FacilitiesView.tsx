@@ -33,7 +33,7 @@ export const FacilitiesView: React.FC = () => {
           name: record['Facility / Organization Name'] || 'Unnamed Facility',
           type: record['Facility Type'] || 'Hospital',
           openings: record['Number of Openings'] || 0,
-          status: record['Status'] || record.status || 'Lead',
+          status: record['Lead Status'] || record.status || 'Lead',
           location: record['Address'] || 'Location not specified',
           phone: record['Primary Contact Phone'] || '',
           email: record['Primary Contact Email'] || '',
@@ -84,14 +84,14 @@ export const FacilitiesView: React.FC = () => {
       const record = await createRecord('Facilities & Clients', {
         'Facility / Organization Name': newFacility.name,
         'Facility Type': newFacility.type,
-        'Status': newFacility.status
+        'Lead Status': newFacility.status
       });
       
       const newMappedFacility = {
         id: record.id,
         name: record['Facility / Organization Name'],
         type: record['Facility Type'],
-        status: record['Status'],
+        status: record['Lead Status'] || newFacility.status,
         openings: 0,
         location: 'Location not specified',
         phone: '',
