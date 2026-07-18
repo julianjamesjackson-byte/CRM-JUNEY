@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserCircle2, DollarSign, Stethoscope, FileText, X, Bot, CalendarClock, MessageSquare, PhoneCall } from 'lucide-react';
-import { fetchCandidates } from '../lib/airtable';
+import { fetchCandidates, deleteRecord } from '../lib/airtable';
 
 const statusColors: Record<string, string> = {
   'Placed': 'bg-healthcare-emerald/10 text-healthcare-emerald border-healthcare-emerald/20',
@@ -24,6 +24,16 @@ export const CandidatesView: React.FC = () => {
   const [candidates, setCandidates] = useState<any[]>([]);
   const [selectedCandidate, setSelectedCandidate] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const handleDeleteCandidate = async (candidateId: string) => {
+    try {
+      await deleteRecord('Clinicians & Candidates', candidateId);
+      setCandidates(prev => prev.filter(c => c.id !== candidateId));
+      setSelectedCandidate(null);
+    } catch (error: any) {
+      alert("Failed to delete candidate: " + (error.response?.data?.error?.message || error.message || String(error)));
+    }
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -58,9 +68,6 @@ export const CandidatesView: React.FC = () => {
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Candidate Roster</h1>
           <p className="text-slate-500">Manage clinicians and AI outreach.</p>
         </div>
-        <button className="bg-healthcare-teal hover:bg-healthcare-teal/90 text-white px-5 py-2.5 rounded-xl font-medium transition-colors shadow-sm shadow-healthcare-teal/20">
-          + Add Candidate
-        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -248,6 +255,19 @@ export const CandidatesView: React.FC = () => {
                       </button>
                     )}
                   </section>
+                  
+                  <div className="pt-6 border-t border-slate-100 mt-8">
+                    <button 
+                      onClick={() => {
+                        if (window.confirm("Are you sure you want to permanently delete this candidate?")) {
+                          handleDeleteCandidate(selectedCandidate.id);
+                        }
+                      }}
+                      className="w-full bg-transparent border border-red-600 text-red-500 hover:bg-red-900/10 font-bold py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-all"
+                    >
+                      Delete Candidate
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>
