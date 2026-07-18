@@ -10,6 +10,16 @@ const statusColors: Record<string, string> = {
   'New Applicant': 'bg-slate-100 text-slate-600 border-slate-200',
 };
 
+const getAttachmentUrl = (fields: any): string | null => {
+  if (!fields) return null;
+  for (const value of Object.values(fields)) {
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object' && value[0] !== null && 'url' in value[0]) {
+      return value[0].url; // Return the first file attachment found anywhere in the record
+    }
+  }
+  return null;
+};
+
 export const CandidatesView: React.FC = () => {
   const [candidates, setCandidates] = useState<any[]>([]);
   const [selectedCandidate, setSelectedCandidate] = useState<any | null>(null);
@@ -199,16 +209,42 @@ export const CandidatesView: React.FC = () => {
                   </section>
 
                   <section>
+                    <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2 mb-4">Application Details</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {Object.entries(selectedCandidate.rawFields)
+                        .filter(([key, value]) => {
+                          // Filter out keys already displayed at the top
+                          const excluded = ['id', 'Applicant Name', 'Specialty', 'Desired Rate', 'Desired Hourly Rate', 'Rate', 'State(s) Licensed', 'Candidate Status', 'Email', 'Email Address', 'Phone Number', 'Phone'];
+                          if (excluded.includes(key)) return false;
+                          
+                          // Filter out attachments (we handle those in the Resume section)
+                          if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object' && value[0] !== null && 'url' in value[0]) return false;
+                          
+                          return true;
+                        })
+                        .map(([key, value]) => {
+                          const displayValue = Array.isArray(value) ? value.join(', ') : typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value);
+                          return (
+                            <div key={key} className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col justify-center">
+                              <span className="text-xs text-slate-500 font-medium uppercase tracking-wider block mb-1">{key}</span>
+                              <div className="font-semibold text-slate-800 text-sm break-words">{displayValue}</div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </section>
+
+                  <section>
                     <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2 mb-4">Resume / CV</h3>
-                    {selectedCandidate.resume && selectedCandidate.resume.length > 0 ? (
-                      <a href={selectedCandidate.resume[0].url} target="_blank" rel="noreferrer" className="w-full bg-slate-50 border-2 border-dashed border-healthcare-teal hover:bg-healthcare-teal/5 text-healthcare-teal font-medium py-6 px-4 rounded-xl flex flex-col items-center justify-center gap-3 transition-all cursor-pointer">
+                    {getAttachmentUrl(selectedCandidate.rawFields) ? (
+                      <a href={getAttachmentUrl(selectedCandidate.rawFields)!} target="_blank" rel="noreferrer" className="w-full bg-slate-50 border-2 border-dashed border-healthcare-teal hover:bg-healthcare-teal/5 text-healthcare-teal font-medium py-6 px-4 rounded-xl flex flex-col items-center justify-center gap-3 transition-all cursor-pointer">
                         <FileText size={32} className="text-healthcare-teal" />
                         <span>View Resume Document</span>
                       </a>
                     ) : (
                       <button disabled className="w-full bg-slate-50 border-2 border-dashed border-slate-200 text-slate-400 font-medium py-6 px-4 rounded-xl flex flex-col items-center justify-center gap-3 cursor-not-allowed">
                         <FileText size={32} className="text-slate-300" />
-                        <span>No Resume on File</span>
+                        <span>No Documents Attached</span>
                       </button>
                     )}
                   </section>
