@@ -27,21 +27,31 @@ export const CandidatesView: React.FC = () => {
 
   const handleDeleteCandidate = async (candidateId: string) => {
     try {
-      const response = await fetch(`https://api.airtable.com/v0/${import.meta.env.VITE_AIRTABLE_BASE_ID}/Clinicians%20%26%20Candidates/${candidateId}`, {
+      const apiKey = import.meta.env.VITE_AIRTABLE_ACCESS_TOKEN || import.meta.env.VITE_AIRTABLE_API_KEY;
+      const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
+      
+      console.log(`Firing DELETE request for candidate: ${candidateId}`);
+      console.log(`Endpoint: https://api.airtable.com/v0/${baseId}/Clinicians%20%26%20Candidates/${candidateId}`);
+      
+      const response = await fetch(`https://api.airtable.com/v0/${baseId}/Clinicians%20%26%20Candidates/${candidateId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_AIRTABLE_ACCESS_TOKEN}`
+          'Authorization': `Bearer ${apiKey}`
         }
       });
       
+      console.log("Delete Response Status:", response.status);
+      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error("Server Error Payload:", errorData);
         throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
       }
 
       setCandidates(prev => prev.filter(c => c.id !== candidateId));
       setSelectedCandidate(null);
     } catch (error: any) {
+      console.error("Delete Catch Block Error:", error);
       alert("Delete Failed: " + (error.response?.data?.error?.message || error.message || String(error)));
     }
   };
@@ -267,14 +277,20 @@ export const CandidatesView: React.FC = () => {
                     )}
                   </section>
                   
-                  <div className="pt-6 border-t border-slate-100 mt-8">
+                  <div className="pt-6 border-t border-slate-100 mt-8 mb-8">
                     <button 
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log("Delete button clicked!");
                         if (window.confirm("Are you sure you want to permanently delete this candidate?")) {
+                          console.log("User confirmed deletion.");
                           handleDeleteCandidate(selectedCandidate.id);
+                        } else {
+                          console.log("User canceled deletion.");
                         }
                       }}
-                      className="w-full bg-transparent border border-red-600 text-red-500 hover:bg-red-900/10 font-bold py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-all"
+                      className="w-full bg-transparent border border-red-600 text-red-500 hover:bg-red-900/10 font-bold py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer"
                     >
                       Delete Candidate
                     </button>
