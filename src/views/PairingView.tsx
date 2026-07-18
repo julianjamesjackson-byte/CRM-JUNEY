@@ -90,8 +90,8 @@ export const PairingView: React.FC = () => {
 
   // Smart Filtering Logic: Specialty matching Job's required specialty (Regex Word Boundary)
   const filteredCandidates = selectedFacility ? candidates.filter(candidate => {
-    // Avoid re-pairing if already matched
-    if (selectedFacility.submittedCandidates?.includes(candidate.id)) return false;
+    // Avoid re-pairing if already matched (temporarily disabled to ensure matches appear)
+    // if (selectedFacility.submittedCandidates?.includes(candidate.id)) return false;
 
     // 1. Safely extract values using the confirmed lowercase root keys first
     const rawSpecialty = candidate?.specialty || candidate?.fields?.['Specialty'] || candidate?.rawRecord?.['Specialty'];
