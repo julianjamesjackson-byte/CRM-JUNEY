@@ -85,29 +85,44 @@ export const PairingView: React.FC = () => {
   console.log("Total Candidates from API:", candidates);
   
   // Smart Filtering Logic: Specialty matching Job's required specialty (Regex Word Boundary)
-  const filteredCandidates = selectedFacility ? candidates.filter(c => {
+  const filteredCandidates = selectedFacility ? candidates.filter(candidate => {
     // Avoid re-pairing if already matched
-    if (selectedFacility.submittedCandidates?.includes(c.id)) return false;
+    if (selectedFacility.submittedCandidates?.includes(candidate.id)) return false;
+
+    // 1. Safely extract values, handling Airtable arrays or undefined fields
+    // Our candData map returns { id: record.id, ...record.fields } as rawRecord
+    const rawSpecialty = candidate.rawRecord['Specialty'];
+    const rawProfession = candidate.rawRecord['Profession'];
     
-    const candSpec = (c.specialty || '').trim();
-    const candProf = (c.profession || '').trim();
-    const reqSpec = (selectedFacility.specialtyRequired || '').trim();
+    const specialtyStr = Array.isArray(rawSpecialty) ? rawSpecialty.join(' ') : (rawSpecialty || '');
+    const professionStr = Array.isArray(rawProfession) ? rawProfession.join(' ') : (rawProfession || '');
     
-    if (!candSpec) return false;
+    // 2. Safely extract the job order string (adapted to selectedFacility)
+    const jobString = selectedFacility.specialtyRequired || selectedFacility.positionTitle || '';
+
+    // 3. Prevent empty string matches
+    if (!specialtyStr) return false;
 
     // Helper to escape regex special characters
     const escapeRegExp = (string: string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-    // Primary Check: Does the Job Order string include the candidate's specialty as a standalone word?
-    const specialtyRegex = new RegExp('\\b' + escapeRegExp(candSpec) + '\\b', 'i');
-    let isMatch = specialtyRegex.test(reqSpec);
-
-    // Highly accurate match: Check if the Job Order string ALSO includes the profession as a standalone word
-    if (isMatch && candProf) {
-      const professionRegex = new RegExp('\\b' + escapeRegExp(candProf) + '\\b', 'i');
-      isMatch = professionRegex.test(reqSpec);
-    }
+    // 4. Create case-insensitive regex with word boundaries
+    // We use \b to ensure "ER" doesn't match inside "Registered"
+    const specialtyRegex = new RegExp(`\\b${escapeRegExp(specialtyStr)}\\b`, 'i');
     
+    // 5. Test the match
+    const isMatch = specialtyRegex.test(jobString);
+
+    // 6. Extreme Debugging (Only log if it's the candidate we are testing)
+    if (specialtyStr.includes("ICU")) {
+        console.log("--- DEBUG PAIRING MATCH ---");
+        console.log("Candidate Name:", candidate.name || 'Unknown');
+        console.log("Extracted Candidate Specialty:", specialtyStr);
+        console.log("Target Job String:", jobString);
+        console.log("Regex Used:", specialtyRegex);
+        console.log("Did it match?:", isMatch);
+    }
+
     return isMatch;
   }) : [];
 
