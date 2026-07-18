@@ -27,11 +27,22 @@ export const CandidatesView: React.FC = () => {
 
   const handleDeleteCandidate = async (candidateId: string) => {
     try {
-      await deleteRecord('Clinicians & Candidates', candidateId);
+      const response = await fetch(`https://api.airtable.com/v0/${import.meta.env.VITE_AIRTABLE_BASE_ID}/Clinicians%20%26%20Candidates/${candidateId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_AIRTABLE_ACCESS_TOKEN}`
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
+      }
+
       setCandidates(prev => prev.filter(c => c.id !== candidateId));
       setSelectedCandidate(null);
     } catch (error: any) {
-      alert("Failed to delete candidate: " + (error.response?.data?.error?.message || error.message || String(error)));
+      alert("Delete Failed: " + (error.response?.data?.error?.message || error.message || String(error)));
     }
   };
 
