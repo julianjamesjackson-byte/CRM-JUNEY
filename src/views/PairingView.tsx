@@ -82,23 +82,30 @@ export const PairingView: React.FC = () => {
     }
   };
 
-  // Smart Filtering Logic: Specialty matching Job's required specialty (Fuzzy Substring Matching)
+  console.log("Total Candidates from API:", candidates);
+  
+  // Smart Filtering Logic: Specialty matching Job's required specialty (Regex Word Boundary)
   const filteredCandidates = selectedFacility ? candidates.filter(c => {
     // Avoid re-pairing if already matched
     if (selectedFacility.submittedCandidates?.includes(c.id)) return false;
     
-    const candSpec = (c.specialty || '').toLowerCase().trim();
-    const candProf = (c.profession || '').toLowerCase().trim();
-    const reqSpec = (selectedFacility.specialtyRequired || '').toLowerCase().trim();
+    const candSpec = (c.specialty || '').trim();
+    const candProf = (c.profession || '').trim();
+    const reqSpec = (selectedFacility.specialtyRequired || '').trim();
     
     if (!candSpec) return false;
 
-    // Primary Check: Does the Job Order string include the candidate's specialty string?
-    let isMatch = reqSpec.includes(candSpec);
+    // Helper to escape regex special characters
+    const escapeRegExp = (string: string) => string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-    // Highly accurate match: Check if the Job Order string ALSO includes the profession (if present)
+    // Primary Check: Does the Job Order string include the candidate's specialty as a standalone word?
+    const specialtyRegex = new RegExp('\\b' + escapeRegExp(candSpec) + '\\b', 'i');
+    let isMatch = specialtyRegex.test(reqSpec);
+
+    // Highly accurate match: Check if the Job Order string ALSO includes the profession as a standalone word
     if (isMatch && candProf) {
-      isMatch = reqSpec.includes(candProf);
+      const professionRegex = new RegExp('\\b' + escapeRegExp(candProf) + '\\b', 'i');
+      isMatch = professionRegex.test(reqSpec);
     }
     
     return isMatch;
