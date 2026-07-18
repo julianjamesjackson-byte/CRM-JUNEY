@@ -282,13 +282,8 @@ export const CandidatesView: React.FC = () => {
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        console.log("Delete button clicked!");
-                        if (window.confirm("Are you sure you want to permanently delete this candidate?")) {
-                          console.log("User confirmed deletion.");
-                          handleDeleteCandidate(selectedCandidate.id);
-                        } else {
-                          console.log("User canceled deletion.");
-                        }
+                        console.log("Delete button clicked! Firing API instantly...");
+                        handleDeleteCandidate(selectedCandidate.id);
                       }}
                       className="w-full bg-transparent border border-red-600 text-red-500 hover:bg-red-900/10 font-bold py-4 px-4 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer"
                     >
