@@ -36,16 +36,19 @@ export const PartnersView: React.FC = () => {
         });
         setCandidatesMap(candMap);
 
-        const mappedPartners = partnersData.map((record: any) => ({
-          id: record.id,
-          name: record['Recruiting Firm'] || record['Firm Name'] || record.name || 'Unnamed Firm',
-          contact: record['Primary Contact'] || 'No Contact Listed',
-          email: record['Email'] || record['Contact Email'] || 'No Email',
-          status: record['Partnership Status'] || record['Status'] || 'Prospect',
-          submittedCandidates: record['Submitted Candidates'] || [],
-          expectedVolume: record['Expected Monthly Submission Volume'] || record['Expected Volume'] || 0,
-          followUpLog: record['CRM Follow-Up Log'] || record['Notes'] || ''
-        }));
+        const mappedPartners = partnersData.map((record: any) => {
+          const fields = record.fields || record;
+          return {
+            id: record.id,
+            name: fields['Recruiting Firm'] || fields['Firm Name'] || fields.name || 'Unnamed Firm',
+            contact: fields['Primary Contact'] || fields['Contact Name'] || 'No Contact Listed',
+            email: fields['Email'] || fields['Contact Email'] || 'No Email',
+            status: fields['Partnership Status'] || fields['Status'] || 'Prospect',
+            submittedCandidates: fields['Submitted Candidates'] || [],
+            expectedVolume: fields['Expected Monthly Submission Volume'] || fields['Expected Volume'] || 0,
+            followUpLog: fields['CRM Follow-Up Log'] || fields['Notes'] || ''
+          };
+        });
         
         setPartners(mappedPartners);
       } catch (error) {
@@ -65,6 +68,33 @@ export const PartnersView: React.FC = () => {
 
   const closeDrawer = () => {
     setSelectedPartner(null);
+  };
+
+  const handleDelete = async (partnerId: string) => {
+    if (!window.confirm("Are you sure you want to delete this partner? This action cannot be undone.")) return;
+    
+    try {
+      const apiKey = import.meta.env.VITE_AIRTABLE_ACCESS_TOKEN || import.meta.env.VITE_AIRTABLE_API_KEY;
+      const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
+      
+      const response = await fetch(`https://api.airtable.com/v0/${baseId}/Recruiting%20Partners/${partnerId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
+      }
+      
+      setPartners(prev => prev.filter(p => p.id !== partnerId));
+      closeDrawer();
+    } catch (error: any) {
+      console.error("Delete failed", error);
+      alert("Delete Failed: " + (error.response?.data?.error?.message || error.message || String(error)));
+    }
   };
 
   const handleUpdate = async (fieldToUpdate: string, value: any) => {
@@ -268,6 +298,16 @@ export const PartnersView: React.FC = () => {
                       ))
                     )}
                   </div>
+                </section>
+                
+                {/* Delete Partner Section */}
+                <section className="pt-8 border-t border-slate-100 pb-12">
+                  <button 
+                    onClick={() => handleDelete(selectedPartner.id)}
+                    className="w-full py-3 px-4 rounded-xl font-semibold border-2 border-red-500 text-red-500 hover:bg-red-50 transition-colors"
+                  >
+                    Delete Partner
+                  </button>
                 </section>
               </div>
             </motion.div>
