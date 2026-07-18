@@ -84,15 +84,18 @@ export const PairingView: React.FC = () => {
 
   console.log("Total Candidates from API:", candidates);
   
+  if (candidates && candidates.length > 0) {
+      console.log("🔍 REAL CANDIDATE STRUCTURE:", candidates[0]);
+  }
+
   // Smart Filtering Logic: Specialty matching Job's required specialty (Regex Word Boundary)
   const filteredCandidates = selectedFacility ? candidates.filter(candidate => {
     // Avoid re-pairing if already matched
     if (selectedFacility.submittedCandidates?.includes(candidate.id)) return false;
 
     // 1. Safely extract values, handling Airtable arrays or undefined fields
-    // Our candData map returns { id: record.id, ...record.fields } as rawRecord
-    const rawSpecialty = candidate.rawRecord['Specialty'];
-    const rawProfession = candidate.rawRecord['Profession'];
+    const rawSpecialty = candidate?.fields?.['Specialty'] || candidate?.['Specialty'] || candidate?.rawRecord?.['Specialty'];
+    const rawProfession = candidate?.fields?.['Profession'] || candidate?.['Profession'] || candidate?.rawRecord?.['Profession'];
     
     const specialtyStr = Array.isArray(rawSpecialty) ? rawSpecialty.join(' ') : (rawSpecialty || '');
     const professionStr = Array.isArray(rawProfession) ? rawProfession.join(' ') : (rawProfession || '');
