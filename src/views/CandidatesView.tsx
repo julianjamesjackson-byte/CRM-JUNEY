@@ -23,9 +23,13 @@ export const CandidatesView: React.FC = () => {
           id: record.id,
           name: record['Applicant Name'] || 'Unknown Candidate',
           specialty: record['Specialty'] || 'General',
-          rate: record['Desired Hourly Rate'] || record['Rate'] || 0,
+          rate: record['Desired Rate'] || record['Desired Hourly Rate'] || record['Rate'] || 'Not provided',
           states: record['State(s) Licensed'] ? (Array.isArray(record['State(s) Licensed']) ? record['State(s) Licensed'] : [record['State(s) Licensed']]) : [],
-          status: record['Candidate Status'] || 'New Applicant'
+          status: record['Candidate Status'] || 'New Applicant',
+          email: record['Email'] || record['Email Address'] || '',
+          phone: record['Phone Number'] || record['Phone'] || '',
+          resume: record['Resume'] || record['CV'] || [],
+          rawFields: record
         }));
         setCandidates(mappedData);
       } catch (error) {
@@ -59,7 +63,10 @@ export const CandidatesView: React.FC = () => {
           <motion.div
             key={candidate.id}
             whileHover={{ y: -4, boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05)' }}
-            onClick={() => setSelectedCandidate(candidate)}
+            onClick={() => {
+              console.log("Candidate Record Fields:", candidate.rawFields);
+              setSelectedCandidate(candidate);
+            }}
             className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm cursor-pointer transition-all duration-300 flex flex-col"
           >
             <div className="flex justify-between items-start mb-4">
@@ -85,8 +92,7 @@ export const CandidatesView: React.FC = () => {
               <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                 <span className="text-slate-400 text-sm">Desired Rate</span>
                 <div className="font-bold text-slate-800 flex items-center">
-                  <DollarSign size={16} className="text-healthcare-teal"/>
-                  {candidate.rate}/hr
+                  {candidate.rate}
                 </div>
               </div>
             </div>
@@ -154,6 +160,26 @@ export const CandidatesView: React.FC = () => {
 
                 <div className="space-y-8">
                   <section>
+                    <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2 mb-4">Contact Info</h3>
+                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-white p-2 rounded-lg shadow-sm border border-slate-100 shrink-0"><PhoneCall size={16} className="text-slate-600"/></div>
+                        <div className="text-slate-700 font-medium">{selectedCandidate.phone || 'Not provided'}</div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="bg-white p-2 rounded-lg shadow-sm border border-slate-100 shrink-0"><MessageSquare size={16} className="text-slate-600"/></div>
+                        <div className="text-slate-700 font-medium">{selectedCandidate.email || 'Not provided'}</div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="bg-white p-2 rounded-lg shadow-sm border border-slate-100 shrink-0"><FileText size={16} className="text-slate-600"/></div>
+                        <div className="text-slate-700 font-medium">
+                          {selectedCandidate.states.length > 0 ? selectedCandidate.states.join(', ') : 'Not provided'}
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section>
                     <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2 mb-4">Professional Details</h3>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
@@ -166,8 +192,7 @@ export const CandidatesView: React.FC = () => {
                       <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                         <span className="text-xs text-slate-500 font-medium uppercase tracking-wider block mb-1">Desired Rate</span>
                         <div className="font-semibold text-slate-800 flex items-center gap-2">
-                          <DollarSign size={16} className="text-healthcare-emerald"/>
-                          ${selectedCandidate.rate}/hr
+                          {selectedCandidate.rate}
                         </div>
                       </div>
                     </div>
@@ -175,10 +200,17 @@ export const CandidatesView: React.FC = () => {
 
                   <section>
                     <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2 mb-4">Resume / CV</h3>
-                    <button className="w-full bg-slate-50 border-2 border-dashed border-slate-200 hover:border-healthcare-teal hover:bg-healthcare-teal/5 text-slate-600 font-medium py-6 px-4 rounded-xl flex flex-col items-center justify-center gap-3 transition-all">
-                      <FileText size={32} className="text-slate-400" />
-                      <span>View Resume Document</span>
-                    </button>
+                    {selectedCandidate.resume && selectedCandidate.resume.length > 0 ? (
+                      <a href={selectedCandidate.resume[0].url} target="_blank" rel="noreferrer" className="w-full bg-slate-50 border-2 border-dashed border-healthcare-teal hover:bg-healthcare-teal/5 text-healthcare-teal font-medium py-6 px-4 rounded-xl flex flex-col items-center justify-center gap-3 transition-all cursor-pointer">
+                        <FileText size={32} className="text-healthcare-teal" />
+                        <span>View Resume Document</span>
+                      </a>
+                    ) : (
+                      <button disabled className="w-full bg-slate-50 border-2 border-dashed border-slate-200 text-slate-400 font-medium py-6 px-4 rounded-xl flex flex-col items-center justify-center gap-3 cursor-not-allowed">
+                        <FileText size={32} className="text-slate-300" />
+                        <span>No Resume on File</span>
+                      </button>
+                    )}
                   </section>
                 </div>
               </div>
