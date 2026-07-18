@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Building2, MapPin, Stethoscope, FileText, X, Phone, Mail, Loader2, Check } from 'lucide-react';
-import { fetchFacilities, updateRecord, createRecord } from '../lib/airtable';
+import { Building2, MapPin, Stethoscope, FileText, X, Phone, Mail, Loader2, Check, Trash2 } from 'lucide-react';
+import { fetchFacilities, updateRecord, createRecord, deleteRecord } from '../lib/airtable';
 
 const statusColors: Record<string, string> = {
   'Active Client': 'bg-healthcare-emerald/10 text-healthcare-emerald border-healthcare-emerald/20',
@@ -22,6 +22,7 @@ export const FacilitiesView: React.FC = () => {
   // Note Saving State
   const [isSavingNote, setIsSavingNote] = useState(false);
   const [noteSaveSuccess, setNoteSaveSuccess] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -107,6 +108,23 @@ export const FacilitiesView: React.FC = () => {
       console.error("Failed to create facility", error);
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleDeleteFacility = async () => {
+    if (!selectedFacility) return;
+    if (!window.confirm('Are you sure you want to delete this facility? This action cannot be undone.')) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteRecord('Facilities & Clients', selectedFacility.id);
+      setFacilities(prev => prev.filter(f => f.id !== selectedFacility.id));
+      setSelectedFacility(null);
+    } catch (error) {
+      console.error("Failed to delete facility", error);
+      alert("Failed to delete facility. Check console for details.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -267,6 +285,17 @@ export const FacilitiesView: React.FC = () => {
                       {renderDocumentList(selectedFacility.invoices, "Generate Invoice", "text-healthcare-blue")}
                     </div>
                   </section>
+                  
+                  <div className="pt-8 mt-8 border-t border-slate-100 flex justify-end">
+                    <button 
+                      onClick={handleDeleteFacility}
+                      disabled={isDeleting}
+                      className="border-2 border-red-500/20 text-red-600 hover:bg-red-50 hover:border-red-500 font-medium py-2.5 px-6 rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {isDeleting ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
+                      {isDeleting ? 'Deleting...' : 'Delete Facility'}
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>

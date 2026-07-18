@@ -43,9 +43,6 @@ export const updateRecord = async (tableName: string, recordId: string, fields: 
   } catch (error) {
     console.error(`Error updating record ${recordId} in ${tableName}:`, error);
     throw error;
-  }
-};
-
 export const createRecord = async (tableName: string, fields: Partial<any>) => {
   try {
     if (apiKey === 'dummy_api_key_for_now') {
@@ -57,8 +54,23 @@ export const createRecord = async (tableName: string, fields: Partial<any>) => {
       { fields }
     ]);
     return { id: createdRecords[0].id, ...createdRecords[0].fields };
-  } catch (error) {
-    console.error(`Error creating record in ${tableName}:`, error);
+  } catch (error: any) {
+    console.error("Airtable POST Error Details:", error.response?.data || error);
+    throw error;
+  }
+};
+
+export const deleteRecord = async (tableName: string, recordId: string) => {
+  try {
+    if (apiKey === 'dummy_api_key_for_now') {
+      console.log(`Mock Delete - Table: ${tableName}, ID: ${recordId}`);
+      return recordId;
+    }
+
+    await base(tableName).destroy([recordId]);
+    return recordId;
+  } catch (error: any) {
+    console.error("Airtable DELETE Error Details:", error.response?.data || error);
     throw error;
   }
 };
