@@ -10,23 +10,26 @@
   }
   
   html.dark body {
-    @apply bg-slate-900 text-slate-100;
+    @apply bg-neutral-950 text-neutral-100;
   }
   
   /* Quick global dark mode overrides for existing white cards and borders */
   html.dark .bg-white {
-    @apply !bg-slate-800 !border-slate-700 !text-slate-200;
+    @apply !bg-neutral-900 !border-neutral-800 !text-neutral-200;
   }
-  html.dark .text-slate-900 {
-    @apply !text-slate-100;
+  html.dark .text-slate-900, html.dark .text-slate-800, html.dark .text-black {
+    @apply !text-white;
   }
-  html.dark .text-slate-500, html.dark .text-slate-600 {
-    @apply !text-slate-400;
+  html.dark .text-slate-700, html.dark .text-slate-600 {
+    @apply !text-neutral-300;
+  }
+  html.dark .text-slate-500, html.dark .text-slate-400 {
+    @apply !text-neutral-400;
   }
   html.dark .border-slate-100, html.dark .border-slate-200 {
-    @apply !border-slate-700;
+    @apply !border-neutral-800;
   }
-  html.dark .bg-slate-50 {
-    @apply !bg-slate-900/50;
+  html.dark .bg-slate-50, html.dark .bg-slate-100 {
+    @apply !bg-neutral-950;
   }
 }
