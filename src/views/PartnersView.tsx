@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Handshake, Mail, X, Loader2, FileText, UserCircle2, Building2 } from 'lucide-react';
+import { Handshake, Mail, X, Loader2, FileText, UserCircle2, Building2, Globe, Briefcase, Target, Scale } from 'lucide-react';
 import { fetchPartners, fetchCandidates, updateRecord } from '../lib/airtable';
 
 const statusColors: Record<string, string> = {
@@ -9,6 +9,8 @@ const statusColors: Record<string, string> = {
   'Prospect': 'bg-slate-100 text-slate-600 border-slate-200',
   'Inactive': 'bg-red-100 text-red-600 border-red-200'
 };
+
+const renderField = (field: any) => Array.isArray(field) ? field.join(', ') : (field || 'N/A');
 
 export const PartnersView: React.FC = () => {
   const [partners, setPartners] = useState<any[]>([]);
@@ -221,6 +223,115 @@ export const PartnersView: React.FC = () => {
               </div>
 
               <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                
+                {/* Section 1: Contact & Web */}
+                <section>
+                  <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2 mb-4 border-b border-slate-100 pb-2">
+                    <Globe size={18} className="text-healthcare-blue" />
+                    Contact & Web
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Phone</span>
+                      <span className="text-sm font-medium text-slate-800">{renderField(selectedPartner['Phone'])}</span>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Website</span>
+                      <span className="text-sm font-medium text-slate-800 truncate">{renderField(selectedPartner['Website'])}</span>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Recruiter Name</span>
+                      <span className="text-sm font-medium text-slate-800">{renderField(selectedPartner['Recruiter Name'])}</span>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Title</span>
+                      <span className="text-sm font-medium text-slate-800">{renderField(selectedPartner['Title'])}</span>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Section 2: Agency Capabilities */}
+                <section>
+                  <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2 mb-4 border-b border-slate-100 pb-2">
+                    <Briefcase size={18} className="text-purple-500" />
+                    Agency Capabilities
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Business Structure</span>
+                      <span className="text-sm font-medium text-slate-800">{renderField(selectedPartner['Business Structure'])}</span>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Years Recruiting</span>
+                      <span className="text-sm font-medium text-slate-800">{renderField(selectedPartner['Years Recruiting'])}</span>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">No. of Recruiters</span>
+                      <span className="text-sm font-medium text-slate-800">{renderField(selectedPartner['Number of Recruiters'])}</span>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">ATS / CRM</span>
+                      <span className="text-sm font-medium text-slate-800">{renderField(selectedPartner['ATS / CRM'])}</span>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 col-span-2">
+                      <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Avg Placements Per Month</span>
+                      <span className="text-sm font-medium text-slate-800">{renderField(selectedPartner['Average Placements Per Month'])}</span>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Section 3: Specialties & Markets */}
+                <section>
+                  <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2 mb-4 border-b border-slate-100 pb-2">
+                    <Target size={18} className="text-healthcare-emerald" />
+                    Specialties & Markets
+                  </h3>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Specialties</span>
+                      <span className="text-sm font-medium text-slate-800">{renderField(selectedPartner['Recruiting Specialties'])}</span>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Placement Types</span>
+                      <span className="text-sm font-medium text-slate-800">{renderField(selectedPartner['Placement Types'])}</span>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Primary Markets</span>
+                      <span className="text-sm font-medium text-slate-800">{renderField(selectedPartner['Primary Geographic Markets'])}</span>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Candidate Sources</span>
+                      <span className="text-sm font-medium text-slate-800">{renderField(selectedPartner['Candidate Sources'])}</span>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Section 4: Legal & Compliance */}
+                <section>
+                  <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2 mb-4 border-b border-slate-100 pb-2">
+                    <Scale size={18} className="text-orange-500" />
+                    Legal & Compliance
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 col-span-2">
+                      <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Company Legal Name</span>
+                      <span className="text-sm font-medium text-slate-800">{renderField(selectedPartner['Company Legal Name'])}</span>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Tax ID / EIN</span>
+                      <span className="text-sm font-medium text-slate-800">{renderField(selectedPartner['Tax ID / EIN'])}</span>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Compliance</span>
+                      <span className="text-sm font-medium text-slate-800">{renderField(selectedPartner['Compliance Capabilities'])}</span>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 col-span-2">
+                      <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Partnership Status</span>
+                      <span className="text-sm font-medium text-slate-800">{renderField(selectedPartner['Partnership Status'])}</span>
+                    </div>
+                  </div>
+                </section>
+
                 {/* Editable Fields Section */}
                 <section>
                   <div className="flex items-center justify-between mb-4">
