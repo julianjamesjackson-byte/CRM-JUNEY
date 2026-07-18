@@ -6,8 +6,9 @@ import { updateRecord, fetchCandidates } from '../lib/airtable';
 
 const COLUMNS = [
   { id: 'New Applicant', title: 'New Applicant', theme: 'border-slate-300 bg-slate-100 text-slate-700' },
-  { id: 'Submitted', title: 'Submitted', theme: 'border-amber-300 bg-amber-500/10 text-amber-700' },
+  { id: 'Credential Review', title: 'Credential Review', theme: 'border-amber-300 bg-amber-500/10 text-amber-700' },
   { id: 'Interviewing', title: 'Interviewing', theme: 'border-healthcare-blue/30 bg-healthcare-blue/10 text-healthcare-blue' },
+  { id: 'Approved', title: 'Approved', theme: 'border-emerald-300 bg-emerald-500/10 text-emerald-700' },
   { id: 'Placed', title: 'Placed', theme: 'border-healthcare-emerald/30 bg-healthcare-emerald/10 text-healthcare-emerald' },
 ];
 
@@ -54,15 +55,36 @@ export const PipelineView: React.FC = () => {
 
     setIsUpdating(true);
     try {
-      // Trigger PATCH to Airtable
-      await updateRecord('Clinicians & Candidates', draggableId, { 'Candidate Status': newStatus });
+      const apiKey = import.meta.env.VITE_AIRTABLE_ACCESS_TOKEN || import.meta.env.VITE_AIRTABLE_API_KEY;
+      const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
+      
+      const response = await fetch(`https://api.airtable.com/v0/${baseId}/Clinicians%20%26%20Candidates/${draggableId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          fields: {
+            "Candidate Status": newStatus
+          },
+          typecast: true
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
+      }
+      
       console.log(`Successfully updated ${draggableId} to status ${newStatus}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to sync status update to Airtable", error);
       // Revert optimistic update on failure
       setCandidates((prev) => 
         prev.map(c => c.id === draggableId ? { ...c, status: oldStatus } : c)
       );
+      alert("Airtable Sync Error: " + (error.response?.data?.error?.message || error.message || String(error)));
     } finally {
       setIsUpdating(false);
     }
