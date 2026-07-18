@@ -1,17 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import type { DropResult } from '@hello-pangea/dnd';
-import { Stethoscope, GripVertical } from 'lucide-react';
-import { updateRecord } from '../lib/airtable';
-
-// We'll use the same mock data shape as before, but with state management
-const INITIAL_CANDIDATES = [
-  { id: '1', name: 'Sarah Jenkins, RN', specialty: 'ICU / Critical Care', states: ['CA', 'TX'], status: 'Submitted' },
-  { id: '2', name: 'Dr. Michael Chen', specialty: 'Emergency Medicine', states: ['NY'], status: 'Interviewing' },
-  { id: '3', name: 'Elena Rodriguez, LPN', specialty: 'Pediatrics', states: ['FL', 'GA'], status: 'New Applicant' },
-  { id: '4', name: 'James Wilson, RT', specialty: 'Respiratory Therapy', states: ['WA', 'OR', 'CA'], status: 'Placed' },
-  { id: '5', name: 'Anita Patel, RN', specialty: 'Med-Surg', states: ['IL', 'OH'], status: 'New Applicant' },
-];
+import { Stethoscope, GripVertical, Loader2 } from 'lucide-react';
+import { updateRecord, fetchCandidates } from '../lib/airtable';
 
 const COLUMNS = [
   { id: 'New Applicant', title: 'New Applicant', theme: 'border-slate-300 bg-slate-100 text-slate-700' },
@@ -21,13 +12,31 @@ const COLUMNS = [
 ];
 
 export const PipelineView: React.FC = () => {
-  const [candidates, setCandidates] = useState(INITIAL_CANDIDATES);
+  const [candidates, setCandidates] = useState<any[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // In a real scenario, you'd fetch from Airtable here:
-  // useEffect(() => {
-  //   fetchCandidates().then(setCandidates);
-  // }, []);
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const data = await fetchCandidates();
+        const mappedData = data.map(record => ({
+          id: record.id,
+          name: record['Name'] || record.name || record['Candidate Name'] || 'Unknown Candidate',
+          specialty: record['Specialty'] || record.specialty || 'General',
+          rate: record['Desired Hourly Rate'] || record['Rate'] || record.rate || 0,
+          states: record['State(s) Licensed'] ? (Array.isArray(record['State(s) Licensed']) ? record['State(s) Licensed'] : [record['State(s) Licensed']]) : (record.states || []),
+          status: record['Status'] || record['Candidate Status'] || record.status || 'New Applicant'
+        }));
+        setCandidates(mappedData);
+      } catch (error) {
+        console.error("Failed to load candidates", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
   const onDragEnd = async (result: DropResult) => {
     const { destination, source, draggableId } = result;
@@ -79,6 +88,16 @@ export const PipelineView: React.FC = () => {
       </div>
 
       <div className="flex-1 overflow-x-auto pb-4">
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64 text-slate-500 font-medium gap-3">
+            <Loader2 className="animate-spin text-healthcare-teal" size={24} />
+            Loading live pipeline from Airtable...
+          </div>
+        ) : candidates.length === 0 ? (
+          <div className="flex items-center justify-center h-64 text-slate-500 font-medium">
+            No candidates found in the pipeline.
+          </div>
+        ) : (
         <DragDropContext onDragEnd={onDragEnd}>
           <div className="flex gap-6 h-full min-w-max">
             {COLUMNS.map(column => (
@@ -139,6 +158,7 @@ export const PipelineView: React.FC = () => {
             ))}
           </div>
         </DragDropContext>
+        )}
       </div>
     </div>
   );

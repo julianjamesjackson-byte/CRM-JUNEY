@@ -1,14 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Building2, MapPin, Stethoscope, FileText, X, Phone, Mail } from 'lucide-react';
-
-// Mock data until Airtable connection is live
-const MOCK_FACILITIES = [
-  { id: '1', name: 'Cedar Sinai Medical', type: 'Hospital', openings: 12, status: 'Active Client', location: 'Los Angeles, CA' },
-  { id: '2', name: 'Oakville Urgent Care', type: 'Clinic', openings: 3, status: 'Lead', location: 'Austin, TX' },
-  { id: '3', name: 'St. Jude Childrens', type: 'Hospital', openings: 8, status: 'Negotiating', location: 'Memphis, TN' },
-  { id: '4', name: 'Mercy Health System', type: 'Health System', openings: 24, status: 'Active Client', location: 'St. Louis, MO' },
-];
+import { fetchFacilities, updateRecord } from '../lib/airtable';
 
 const statusColors: Record<string, string> = {
   'Active Client': 'bg-healthcare-emerald/10 text-healthcare-emerald border-healthcare-emerald/20',
@@ -17,7 +10,32 @@ const statusColors: Record<string, string> = {
 };
 
 export const FacilitiesView: React.FC = () => {
+  const [facilities, setFacilities] = useState<any[]>([]);
   const [selectedFacility, setSelectedFacility] = useState<any | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const data = await fetchFacilities();
+        // Map Airtable fields to our component's expected structure if necessary
+        const mappedData = data.map(record => ({
+          id: record.id,
+          name: record['Facility Name'] || record.name || record.Name || 'Unnamed Facility',
+          type: record['Facility Type'] || record.type || record.Type || 'Hospital',
+          openings: record['Openings'] || record.openings || 0,
+          status: record['Status'] || record.status || 'Lead',
+          location: record['Location'] || record.location || 'Unknown'
+        }));
+        setFacilities(mappedData);
+      } catch (error) {
+        console.error("Failed to load facilities", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
   return (
     <div className="p-8 max-w-7xl mx-auto animate-in fade-in duration-500">
@@ -32,7 +50,12 @@ export const FacilitiesView: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {MOCK_FACILITIES.map(facility => (
+        {isLoading ? (
+          <div className="col-span-full p-8 text-center text-slate-500 font-medium">Loading live data from Airtable...</div>
+        ) : facilities.length === 0 ? (
+          <div className="col-span-full p-8 text-center text-slate-500 font-medium">No facilities found. Check your Airtable table name and fields.</div>
+        ) : (
+        facilities.map(facility => (
           <motion.div
             key={facility.id}
             whileHover={{ y: -4, boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05)' }}
@@ -63,7 +86,7 @@ export const FacilitiesView: React.FC = () => {
               </div>
             </div>
           </motion.div>
-        ))}
+        )))}
       </div>
 
       {/* Slide-out Modal for Facility Details */}

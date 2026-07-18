@@ -1,14 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserCircle2, DollarSign, Stethoscope, FileText, X, Bot, CalendarClock, MessageSquare, PhoneCall } from 'lucide-react';
-
-// Mock data until Airtable connection is live
-const MOCK_CANDIDATES = [
-  { id: '1', name: 'Sarah Jenkins, RN', specialty: 'ICU / Critical Care', rate: 85, states: ['CA', 'TX'], status: 'Submitted' },
-  { id: '2', name: 'Dr. Michael Chen', specialty: 'Emergency Medicine', rate: 210, states: ['NY'], status: 'Interviewing' },
-  { id: '3', name: 'Elena Rodriguez, LPN', specialty: 'Pediatrics', rate: 45, states: ['FL', 'GA'], status: 'New Applicant' },
-  { id: '4', name: 'James Wilson, RT', specialty: 'Respiratory Therapy', rate: 65, states: ['WA', 'OR', 'CA'], status: 'Placed' },
-];
+import { fetchCandidates } from '../lib/airtable';
 
 const statusColors: Record<string, string> = {
   'Placed': 'bg-healthcare-emerald/10 text-healthcare-emerald border-healthcare-emerald/20',
@@ -18,7 +11,31 @@ const statusColors: Record<string, string> = {
 };
 
 export const CandidatesView: React.FC = () => {
+  const [candidates, setCandidates] = useState<any[]>([]);
   const [selectedCandidate, setSelectedCandidate] = useState<any | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const data = await fetchCandidates();
+        const mappedData = data.map(record => ({
+          id: record.id,
+          name: record['Name'] || record.name || record['Candidate Name'] || 'Unknown Candidate',
+          specialty: record['Specialty'] || record.specialty || 'General',
+          rate: record['Desired Hourly Rate'] || record['Rate'] || record.rate || 0,
+          states: record['State(s) Licensed'] ? (Array.isArray(record['State(s) Licensed']) ? record['State(s) Licensed'] : [record['State(s) Licensed']]) : (record.states || []),
+          status: record['Status'] || record['Candidate Status'] || record.status || 'New Applicant'
+        }));
+        setCandidates(mappedData);
+      } catch (error) {
+        console.error("Failed to load candidates", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
   return (
     <div className="p-8 max-w-7xl mx-auto animate-in fade-in duration-500">
@@ -33,7 +50,12 @@ export const CandidatesView: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {MOCK_CANDIDATES.map(candidate => (
+        {isLoading ? (
+          <div className="col-span-full p-8 text-center text-slate-500 font-medium">Loading live candidates from Airtable...</div>
+        ) : candidates.length === 0 ? (
+          <div className="col-span-full p-8 text-center text-slate-500 font-medium">No candidates found. Check your Airtable table and fields.</div>
+        ) : (
+        candidates.map(candidate => (
           <motion.div
             key={candidate.id}
             whileHover={{ y: -4, boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05)' }}
@@ -42,7 +64,7 @@ export const CandidatesView: React.FC = () => {
           >
             <div className="flex justify-between items-start mb-4">
               <UserCircle2 className="text-slate-300" size={48} />
-              <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${statusColors[candidate.status]}`}>
+              <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${statusColors[candidate.status] || 'bg-slate-100'}`}>
                 {candidate.status}
               </span>
             </div>
@@ -69,7 +91,7 @@ export const CandidatesView: React.FC = () => {
               </div>
             </div>
           </motion.div>
-        ))}
+        )))}
       </div>
 
       {/* Slide-out Modal for Candidate Details */}
