@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Building2, MapPin, Stethoscope, FileText, X, Phone, Mail, Loader2, Check, Trash2 } from 'lucide-react';
+import { Building2, MapPin, Stethoscope, FileText, X, Phone, Mail, Loader2, Check, Trash2, UserCircle2, Briefcase, Target, CreditCard, ClipboardList } from 'lucide-react';
 import { fetchFacilities, updateRecord, deleteRecord } from '../lib/airtable';
 
 const statusColors: Record<string, string> = {
@@ -8,6 +8,8 @@ const statusColors: Record<string, string> = {
   'Lead': 'bg-healthcare-blue/10 text-healthcare-blue border-healthcare-blue/20',
   'Negotiating': 'bg-amber-500/10 text-amber-600 border-amber-500/20',
 };
+
+const renderField = (field: any) => Array.isArray(field) ? field.join(', ') : (field || 'N/A');
 
 export const FacilitiesView: React.FC = () => {
   const [facilities, setFacilities] = useState<any[]>([]);
@@ -24,19 +26,24 @@ export const FacilitiesView: React.FC = () => {
     const loadData = async () => {
       try {
         const data = await fetchFacilities();
-        const mappedData = data.map((record: any) => ({
-          id: record.id,
-          name: record['Facility / Organization Name'] || 'Unnamed Facility',
-          type: record['Facility Type'] || 'Hospital',
-          openings: record['Number of Openings'] || 0,
-          status: record['Lead Status'] || record.status || 'Lead',
-          location: record['Address'] || 'Location not specified',
-          phone: record['Primary Contact Phone'] || '',
-          email: record['Primary Contact Email'] || '',
-          notes: record['Additional Notes'] || '',
-          agreements: record['Client Agreements'] || [],
-          invoices: record['Invoices'] || []
-        }));
+        const mappedData = data.map((record: any) => {
+          const fields = record.fields || record;
+          return {
+            id: record.id,
+            rawRecord: fields,
+            ...fields,
+            name: fields['Facility / Organization Name'] || 'Unnamed Facility',
+            type: fields['Facility Type'] || 'Hospital',
+            openings: fields['Number of Openings'] || 0,
+            status: fields['Lead Status'] || fields.status || 'Lead',
+            location: fields['Address'] || 'Location not specified',
+            phone: fields['Primary Contact Phone'] || '',
+            email: fields['Primary Contact Email'] || '',
+            notes: fields['Additional Notes'] || '',
+            agreements: fields['Client Agreements'] || [],
+            invoices: fields['Invoices'] || []
+          };
+        });
         setFacilities(mappedData);
       } catch (error) {
         console.error("Failed to load facilities", error);
@@ -50,17 +57,18 @@ export const FacilitiesView: React.FC = () => {
   const handleNoteBlur = async (e: React.FocusEvent<HTMLTextAreaElement>) => {
     if (!selectedFacility) return;
     const newNote = e.target.value;
-    if (newNote === selectedFacility.notes) return; // No changes
+    const currentNote = selectedFacility['CRM Follow-Up Log'] || selectedFacility.notes || '';
+    if (newNote === currentNote) return; // No changes
 
     setIsSavingNote(true);
     setNoteSaveSuccess(false);
     try {
       await updateRecord('Facilities & Clients', selectedFacility.id, {
-        'Additional Notes': newNote
+        'CRM Follow-Up Log': newNote
       });
       
       // Update local state
-      const updatedFacility = { ...selectedFacility, notes: newNote };
+      const updatedFacility = { ...selectedFacility, 'CRM Follow-Up Log': newNote, notes: newNote };
       setSelectedFacility(updatedFacility);
       setFacilities(prev => prev.map(f => f.id === updatedFacility.id ? updatedFacility : f));
       
@@ -197,31 +205,130 @@ export const FacilitiesView: React.FC = () => {
                   <X size={20} />
                 </button>
                 
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold border inline-block mb-4 ${statusColors[selectedFacility.status] || 'bg-slate-100 border-slate-200 text-slate-600'}`}>
-                  {selectedFacility.status}
+                <span className={`px-3 py-1 rounded-full text-xs font-semibold border inline-block mb-4 ${statusColors[selectedFacility['Lead Status'] || selectedFacility.status] || 'bg-slate-100 border-slate-200 text-slate-600'}`}>
+                  {selectedFacility['Lead Status'] || selectedFacility.status}
                 </span>
                 
-                <h2 className="text-3xl font-bold text-slate-900 mb-2 pr-12">{selectedFacility.name}</h2>
+                <h2 className="text-3xl font-bold text-slate-900 mb-2 pr-12">{selectedFacility['Facility / Organization Name'] || selectedFacility.name || 'Unnamed Facility'}</h2>
                 <p className="text-slate-500 flex items-start gap-2 mb-8">
                   <MapPin size={16} className="mt-0.5 shrink-0" /> 
-                  <span>{selectedFacility.location}</span>
+                  <span>{selectedFacility['Address'] || selectedFacility.location || 'No Address Listed'}</span>
                 </p>
 
                 <div className="space-y-8">
+                  {/* Section 1: Primary Contact Info */}
                   <section>
-                    <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2 mb-4">Contact Info</h3>
-                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="bg-white p-2 rounded-lg shadow-sm border border-slate-100 shrink-0"><Phone size={16} className="text-slate-600"/></div>
-                        <input type="text" readOnly className="bg-transparent border-none focus:ring-0 text-slate-700 w-full font-medium" value={selectedFacility.phone || 'No phone provided'} />
+                    <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2 mb-4 flex items-center gap-2">
+                      <UserCircle2 size={18} className="text-healthcare-blue" />
+                      Primary Contact Info
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Name</span>
+                        <span className="text-sm font-medium text-slate-800">{renderField(selectedFacility['Primary Contact Name'])}</span>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <div className="bg-white p-2 rounded-lg shadow-sm border border-slate-100 shrink-0"><Mail size={16} className="text-slate-600"/></div>
-                        <input type="email" readOnly className="bg-transparent border-none focus:ring-0 text-slate-700 w-full font-medium" value={selectedFacility.email || 'No email provided'} />
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Title</span>
+                        <span className="text-sm font-medium text-slate-800">{renderField(selectedFacility['Primary Contact Title'])}</span>
+                      </div>
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Phone</span>
+                        <span className="text-sm font-medium text-slate-800">{renderField(selectedFacility['Primary Contact Phone'])}</span>
+                      </div>
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Email</span>
+                        <span className="text-sm font-medium text-slate-800 truncate">{renderField(selectedFacility['Primary Contact Email'])}</span>
                       </div>
                     </div>
                   </section>
-                  
+
+                  {/* Section 2: Current Job Request details */}
+                  <section>
+                    <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2 mb-4 flex items-center gap-2">
+                      <Briefcase size={18} className="text-purple-500" />
+                      Current Job Request details
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 col-span-2">
+                        <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Position</span>
+                        <span className="text-sm font-medium text-slate-800">{renderField(selectedFacility['Position Title'])}</span>
+                      </div>
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Department</span>
+                        <span className="text-sm font-medium text-slate-800">{renderField(selectedFacility['Department'])}</span>
+                      </div>
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Openings</span>
+                        <span className="text-sm font-medium text-slate-800">{renderField(selectedFacility['Number of Openings'])}</span>
+                      </div>
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Employment Type</span>
+                        <span className="text-sm font-medium text-slate-800">{renderField(selectedFacility['Employment Type'])}</span>
+                      </div>
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Urgency</span>
+                        <span className="text-sm font-medium text-slate-800">{renderField(selectedFacility['Urgency'])}</span>
+                      </div>
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 col-span-2">
+                        <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Shift & Hours</span>
+                        <span className="text-sm font-medium text-slate-800">{renderField(selectedFacility['Shift'])} - {renderField(selectedFacility['Schedule / Hours'])}</span>
+                      </div>
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 col-span-2">
+                        <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Bill Rate</span>
+                        <span className="text-sm font-medium text-slate-800">{renderField(selectedFacility['Compensation / Bill Rate'])}</span>
+                      </div>
+                    </div>
+                  </section>
+
+                  {/* Section 3: Clinical & System Requirements */}
+                  <section>
+                    <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2 mb-4 flex items-center gap-2">
+                      <ClipboardList size={18} className="text-healthcare-emerald" />
+                      Clinical & System Requirements
+                    </h3>
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">EHR/EMR System</span>
+                        <span className="text-sm font-medium text-slate-800">{renderField(selectedFacility['EHR/EMR System'])}</span>
+                      </div>
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Required Licenses</span>
+                        <span className="text-sm font-medium text-slate-800">{renderField(selectedFacility['Required Licenses'])}</span>
+                      </div>
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Required Certifications</span>
+                        <span className="text-sm font-medium text-slate-800">{renderField(selectedFacility['Required Certifications'])}</span>
+                      </div>
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Minimum Experience</span>
+                        <span className="text-sm font-medium text-slate-800">{renderField(selectedFacility['Minimum Experience'])}</span>
+                      </div>
+                    </div>
+                  </section>
+
+                  {/* Section 4: Billing & Admin */}
+                  <section>
+                    <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2 mb-4 flex items-center gap-2">
+                      <CreditCard size={18} className="text-orange-500" />
+                      Billing & Admin
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 col-span-2">
+                        <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Billing Contact</span>
+                        <span className="text-sm font-medium text-slate-800">{renderField(selectedFacility['Billing Contact Name'])}</span>
+                      </div>
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 col-span-2">
+                        <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Billing Email</span>
+                        <span className="text-sm font-medium text-slate-800">{renderField(selectedFacility['Billing Contact Email'])}</span>
+                      </div>
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 col-span-2">
+                        <span className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Assigned Recruiter</span>
+                        <span className="text-sm font-medium text-slate-800">{renderField(selectedFacility['Assigned Recruiter'])}</span>
+                      </div>
+                    </div>
+                  </section>
+
+                  {/* Existing Interactive Elements */}
                   <section>
                     <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-4">
                       <h3 className="text-lg font-bold text-slate-800">CRM Follow-Up Log</h3>
@@ -229,7 +336,7 @@ export const FacilitiesView: React.FC = () => {
                       {noteSaveSuccess && <span className="text-xs text-healthcare-emerald flex items-center gap-1"><Check size={12} /> Saved</span>}
                     </div>
                     <textarea 
-                      defaultValue={selectedFacility.notes}
+                      defaultValue={selectedFacility['CRM Follow-Up Log'] || selectedFacility.notes || ''}
                       onBlur={handleNoteBlur}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-healthcare-teal/50 transition-shadow text-slate-700"
                       placeholder="Add follow-up notes here. Click outside to auto-save to Airtable..."
