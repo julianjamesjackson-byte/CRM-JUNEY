@@ -476,17 +476,41 @@ export const PartnersView: React.FC = () => {
                 {/* Delete Partner Section */}
                 <section className="pt-8 border-t border-slate-100 pb-12">
                   <button 
+                    type="button"
                     onClick={(e) => {
-                      e.preventDefault(); 
-                      // @ts-ignore - fallback for partner as requested
-                      const pid = selectedPartner?.id || (typeof partner !== 'undefined' ? partner?.id : null);
-                      if (pid) {
-                        handleDelete(pid);
-                      } else {
-                        console.error("Delete failed: No partner ID found.");
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const partner = selectedPartner;
+                      console.log("🚨 DELETE BUTTON CLICKED! Partner ID:", partner?.id);
+                      
+                      if (!partner?.id) {
+                        alert("Error: No Partner ID found to delete.");
+                        return;
+                      }
+                  
+                      if (window.confirm("Are you sure you want to delete this partner? This action cannot be undone.")) {
+                        // Fire the fetch request directly here to guarantee scope
+                        fetch(`https://api.airtable.com/v0/${import.meta.env.VITE_AIRTABLE_BASE_ID}/Recruiting%20Partners/${partner.id}`, {
+                          method: 'DELETE',
+                          headers: { 'Authorization': `Bearer ${import.meta.env.VITE_AIRTABLE_PAT || import.meta.env.VITE_AIRTABLE_ACCESS_TOKEN || import.meta.env.VITE_AIRTABLE_API_KEY}` }
+                        })
+                        .then(res => {
+                          if (!res.ok) throw new Error("Failed to delete from Airtable");
+                          console.log("✅ Successfully deleted from Airtable");
+                          window.location.reload(); // Force a hard refresh to update the UI instantly
+                        })
+                        .catch(err => {
+                          console.error("❌ Delete failed:", err);
+                          alert("Delete failed: " + err.message);
+                        });
                       }
                     }}
-                    className="w-full py-3 px-4 rounded-xl font-semibold border-2 border-red-500 text-red-500 hover:bg-red-50 transition-colors"
+                    style={{
+                      width: '100%', padding: '12px', marginTop: '24px',
+                      color: '#ef4444', backgroundColor: 'transparent',
+                      border: '1px solid #ef4444', borderRadius: '8px',
+                      cursor: 'pointer', fontWeight: 'bold'
+                    }}
                   >
                     Delete Partner
                   </button>
