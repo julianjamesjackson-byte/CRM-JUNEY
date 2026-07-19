@@ -5,7 +5,7 @@ import './index.css'
 import App from './App.tsx'
 
 // Import your publishable key
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || "pk_test_bGVnaWJsZS1nbnUtNDkuY2xlcmsuYWNjb3VudHMuZGV2JA"
 
 if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key")
