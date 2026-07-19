@@ -476,7 +476,16 @@ export const PartnersView: React.FC = () => {
                 {/* Delete Partner Section */}
                 <section className="pt-8 border-t border-slate-100 pb-12">
                   <button 
-                    onClick={() => handleDelete(selectedPartner.id)}
+                    onClick={(e) => {
+                      e.preventDefault(); 
+                      // @ts-ignore - fallback for partner as requested
+                      const pid = selectedPartner?.id || (typeof partner !== 'undefined' ? partner?.id : null);
+                      if (pid) {
+                        handleDelete(pid);
+                      } else {
+                        console.error("Delete failed: No partner ID found.");
+                      }
+                    }}
                     className="w-full py-3 px-4 rounded-xl font-semibold border-2 border-red-500 text-red-500 hover:bg-red-50 transition-colors"
                   >
                     Delete Partner
