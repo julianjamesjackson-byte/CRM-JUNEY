@@ -134,7 +134,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleCollapse })
           </div>
           {isExpanded && (
             <div className="flex flex-col overflow-hidden">
-              <span className="text-sm font-medium text-slate-900 whitespace-nowrap">Jane Doe</span>
+              <span className="text-sm font-medium text-slate-900 whitespace-nowrap">Juney</span>
               <span className="text-xs text-slate-500 whitespace-nowrap">Administrator</span>
             </div>
           )}
