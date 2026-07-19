@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Building2, Users, KanbanSquare, Handshake, Link2, Menu, Sun, Moon } from 'lucide-react';
-import { UserButton } from "@clerk/clerk-react";
+import { LayoutDashboard, Building2, Users, KanbanSquare, Handshake, Link2, Menu, Sun, Moon, LogOut } from 'lucide-react';
+import { useAuth } from "@clerk/clerk-react";
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -24,6 +24,7 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleCollapse }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const { signOut } = useAuth();
   
   useEffect(() => {
     // Check system preference or localStorage on initial load
@@ -129,13 +130,30 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleCollapse })
           {isExpanded && <span className="whitespace-nowrap">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>}
         </button>
         
-        <div className={cn("flex items-center py-3", isExpanded ? "px-4" : "justify-center")}>
-          <UserButton 
-            showName={isExpanded} 
-            appearance={{
-              variables: { colorText: isDarkMode ? 'white' : 'black' }
-            }}
-          />
+        <div className={cn("flex flex-col gap-2 pt-2 border-t border-slate-100 dark:border-slate-800", isExpanded ? "px-4" : "items-center")}>
+          <div className="flex items-center gap-3 py-2">
+            <div className="shrink-0 w-8 h-8 rounded-full bg-healthcare-teal flex items-center justify-center text-white font-bold">
+              JD
+            </div>
+            {isExpanded && (
+              <div className="flex flex-col overflow-hidden">
+                <span className="text-sm font-medium text-slate-900 dark:text-white whitespace-nowrap">Juney</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">Administrator</span>
+              </div>
+            )}
+          </div>
+          
+          <button 
+            onClick={() => signOut()}
+            className={cn(
+              "flex items-center gap-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400",
+              isExpanded ? "px-3 w-full" : "justify-center w-10 h-10 px-0"
+            )}
+            title="Sign Out"
+          >
+            <div className="shrink-0"><LogOut size={18} /></div>
+            {isExpanded && <span className="whitespace-nowrap">Sign Out</span>}
+          </button>
         </div>
       </div>
     </div>
