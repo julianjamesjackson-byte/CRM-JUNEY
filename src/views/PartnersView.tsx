@@ -73,26 +73,25 @@ export const PartnersView: React.FC = () => {
     if (!window.confirm("Are you sure you want to delete this partner? This action cannot be undone.")) return;
     
     try {
-      const apiKey = import.meta.env.VITE_AIRTABLE_ACCESS_TOKEN || import.meta.env.VITE_AIRTABLE_API_KEY;
-      const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
-      
-      const response = await fetch(`https://api.airtable.com/v0/${baseId}/Recruiting%20Partners/${partnerId}`, {
+      const response = await fetch(`https://api.airtable.com/v0/${import.meta.env.VITE_AIRTABLE_BASE_ID}/Recruiting%20Partners/${partnerId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${apiKey}`
+          'Authorization': `Bearer ${import.meta.env.VITE_AIRTABLE_PAT || import.meta.env.VITE_AIRTABLE_ACCESS_TOKEN || import.meta.env.VITE_AIRTABLE_API_KEY}`
         }
       });
-      
+  
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || "Failed to delete record.");
       }
-      
+  
+      // Optimistic UI Update: Remove from state and close drawer
       setPartners(prev => prev.filter(p => p.id !== partnerId));
-      closeDrawer();
+      setSelectedPartner(null);
+      
     } catch (error: any) {
-      console.error("Delete failed", error);
-      alert("Delete Failed: " + (error.response?.data?.error?.message || error.message || String(error)));
+      console.error("Delete Error:", error);
+      alert(`Error deleting partner: ${error.message}`);
     }
   };
 
