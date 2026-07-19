@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import type { DropResult } from '@hello-pangea/dnd';
 import { Stethoscope, GripVertical, Loader2 } from 'lucide-react';
-import { updateRecord, fetchCandidates } from '../lib/airtable';
+import { fetchCandidates } from '../lib/airtable';
 
 const COLUMNS = [
   { id: 'New Applicant', title: 'New Applicant', theme: 'border-slate-300 bg-slate-100 text-slate-700' },

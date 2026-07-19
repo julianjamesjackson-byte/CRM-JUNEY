@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Building2, Stethoscope, MapPin, UserCircle2, Link2, Loader2, CheckCircle2 } from 'lucide-react';
-import { fetchFacilities, fetchCandidates, updateRecord } from '../lib/airtable';
+import { fetchFacilities, fetchCandidates } from '../lib/airtable';
 
 export const PairingView: React.FC = () => {
   const [facilities, setFacilities] = useState<any[]>([]);
@@ -116,11 +116,9 @@ export const PairingView: React.FC = () => {
 
     // 1. Safely extract values using the confirmed lowercase root keys first
     const rawSpecialty = candidate?.specialty || candidate?.fields?.['Specialty'] || candidate?.rawRecord?.['Specialty'];
-    const rawProfession = candidate?.profession || candidate?.fields?.['Profession'] || candidate?.rawRecord?.['Profession'];
+
     
     const specialtyStr = Array.isArray(rawSpecialty) ? rawSpecialty.join(' ') : (rawSpecialty || '');
-    const professionStr = Array.isArray(rawProfession) ? rawProfession.join(' ') : (rawProfession || '');
-    
     // 2. Safely extract the job order string (adapted to selectedFacility)
     const jobString = selectedFacility.specialtyRequired || selectedFacility.positionTitle || '';
 

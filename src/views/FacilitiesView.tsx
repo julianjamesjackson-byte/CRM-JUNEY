@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Building2, MapPin, Stethoscope, FileText, X, Phone, Mail, Loader2, Check, Trash2, UserCircle2, Briefcase, Target, CreditCard, ClipboardList } from 'lucide-react';
+import { Building2, MapPin, Stethoscope, FileText, X, Loader2, Check, Trash2, UserCircle2, Briefcase, CreditCard, ClipboardList } from 'lucide-react';
 import { fetchFacilities, updateRecord, deleteRecord } from '../lib/airtable';
 
 const statusColors: Record<string, string> = {

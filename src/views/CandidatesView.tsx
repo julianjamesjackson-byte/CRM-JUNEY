@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserCircle2, DollarSign, Stethoscope, FileText, X, Bot, CalendarClock, MessageSquare, PhoneCall } from 'lucide-react';
-import { fetchCandidates, deleteRecord } from '../lib/airtable';
+import { UserCircle2, Stethoscope, FileText, X, Bot, CalendarClock, MessageSquare, PhoneCall } from 'lucide-react';
+import { fetchCandidates } from '../lib/airtable';
 
 const statusColors: Record<string, string> = {
   'Placed': 'bg-healthcare-emerald/10 text-healthcare-emerald border-healthcare-emerald/20',

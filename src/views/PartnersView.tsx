@@ -69,31 +69,7 @@ export const PartnersView: React.FC = () => {
     setSelectedPartner(null);
   };
 
-  const handleDelete = async (partnerId: string) => {
-    if (!window.confirm("Are you sure you want to delete this partner? This action cannot be undone.")) return;
-    
-    try {
-      const response = await fetch(`https://api.airtable.com/v0/${import.meta.env.VITE_AIRTABLE_BASE_ID}/Recruiting%20Partners/${partnerId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_AIRTABLE_PAT || import.meta.env.VITE_AIRTABLE_ACCESS_TOKEN || import.meta.env.VITE_AIRTABLE_API_KEY}`
-        }
-      });
-  
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || "Failed to delete record.");
-      }
-  
-      // Optimistic UI Update: Remove from state and close drawer
-      setPartners(prev => prev.filter(p => p.id !== partnerId));
-      setSelectedPartner(null);
-      
-    } catch (error: any) {
-      console.error("Delete Error:", error);
-      alert(`Error deleting partner: ${error.message}`);
-    }
-  };
+
 
   const handleStatusChange = async (partnerId: string, newStatus: string) => {
     // Find the current partner to allow reverting
