@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, Building2, Users, KanbanSquare, Handshake, Link2, Menu, Sun, Moon } from 'lucide-react';
+import { UserButton } from "@clerk/clerk-react";
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -128,16 +129,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleCollapse })
           {isExpanded && <span className="whitespace-nowrap">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>}
         </button>
         
-        <div className={cn("flex items-center gap-3 py-3", isExpanded ? "px-4" : "justify-center")}>
-          <div className="shrink-0 w-8 h-8 rounded-full bg-healthcare-teal/20 flex items-center justify-center text-healthcare-teal font-bold">
-            JD
-          </div>
-          {isExpanded && (
-            <div className="flex flex-col overflow-hidden">
-              <span className="text-sm font-medium text-slate-900 whitespace-nowrap">Juney</span>
-              <span className="text-xs text-slate-500 whitespace-nowrap">Administrator</span>
-            </div>
-          )}
+        <div className={cn("flex items-center py-3", isExpanded ? "px-4" : "justify-center")}>
+          <UserButton 
+            showName={isExpanded} 
+            appearance={{
+              variables: { colorText: isDarkMode ? 'white' : 'black' }
+            }}
+          />
         </div>
       </div>
     </div>
