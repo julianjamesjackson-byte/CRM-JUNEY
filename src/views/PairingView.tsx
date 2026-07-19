@@ -164,9 +164,9 @@ export const PairingView: React.FC = () => {
         <p className="text-slate-500">Intelligently match candidates with open job orders based on specialty.</p>
       </div>
 
-      <div className="flex flex-1 gap-8 min-h-0">
+      <div className="flex flex-col lg:flex-row flex-1 gap-6 lg:gap-8 min-h-0">
         {/* Left Column: Job Orders */}
-        <div className="w-1/3 flex flex-col bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden">
+        <div className="w-full lg:w-1/3 flex flex-col bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden h-[300px] lg:h-auto shrink-0 lg:shrink">
           <div className="p-4 border-b border-slate-200 bg-white">
             <h2 className="font-bold text-slate-800 flex items-center gap-2">
               <Building2 className="text-healthcare-teal" size={18} />
