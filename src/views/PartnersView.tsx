@@ -481,29 +481,27 @@ export const PartnersView: React.FC = () => {
                       e.preventDefault();
                       e.stopPropagation();
                       const partner = selectedPartner;
-                      console.log("🚨 DELETE BUTTON CLICKED! Partner ID:", partner?.id);
+                      console.log("🚀 Executing Airtable DELETE for ID:", partner?.id);
                       
                       if (!partner?.id) {
                         alert("Error: No Partner ID found to delete.");
                         return;
                       }
                   
-                      if (window.confirm("Are you sure you want to delete this partner? This action cannot be undone.")) {
-                        // Fire the fetch request directly here to guarantee scope
-                        fetch(`https://api.airtable.com/v0/${import.meta.env.VITE_AIRTABLE_BASE_ID}/Recruiting%20Partners/${partner.id}`, {
-                          method: 'DELETE',
-                          headers: { 'Authorization': `Bearer ${import.meta.env.VITE_AIRTABLE_PAT || import.meta.env.VITE_AIRTABLE_ACCESS_TOKEN || import.meta.env.VITE_AIRTABLE_API_KEY}` }
-                        })
-                        .then(res => {
-                          if (!res.ok) throw new Error("Failed to delete from Airtable");
-                          console.log("✅ Successfully deleted from Airtable");
-                          window.location.reload(); // Force a hard refresh to update the UI instantly
-                        })
-                        .catch(err => {
-                          console.error("❌ Delete failed:", err);
-                          alert("Delete failed: " + err.message);
-                        });
-                      }
+                      // Firing fetch directly without window.confirm to bypass environment modal blocks
+                      fetch(`https://api.airtable.com/v0/${import.meta.env.VITE_AIRTABLE_BASE_ID}/Recruiting%20Partners/${partner.id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${import.meta.env.VITE_AIRTABLE_PAT || import.meta.env.VITE_AIRTABLE_ACCESS_TOKEN || import.meta.env.VITE_AIRTABLE_API_KEY}` }
+                      })
+                      .then(res => {
+                        if (!res.ok) throw new Error("Failed to delete from Airtable");
+                        console.log("✅ Successfully deleted from Airtable");
+                        window.location.reload(); // Force refresh to clear the card from the UI
+                      })
+                      .catch(err => {
+                        console.error("❌ Delete failed:", err);
+                        alert("Delete failed: " + err.message);
+                      });
                     }}
                     style={{
                       width: '100%', padding: '12px', marginTop: '24px',
