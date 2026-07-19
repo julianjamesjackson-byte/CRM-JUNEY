@@ -55,7 +55,7 @@ export const PairingView: React.FC = () => {
     setPairingStatus(prev => ({ ...prev, [candidate.id]: 'pairing' }));
     
     try {
-      const apiKey = import.meta.env.VITE_AIRTABLE_ACCESS_TOKEN || import.meta.env.VITE_AIRTABLE_API_KEY;
+      const apiKey = import.meta.env.VITE_AIRTABLE_PAT || import.meta.env.VITE_AIRTABLE_ACCESS_TOKEN || import.meta.env.VITE_AIRTABLE_API_KEY;
       const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
       
       let newMatchedJobs;

@@ -1,7 +1,7 @@
 import Airtable from 'airtable';
 
 // Initialize Airtable instance securely
-const apiKey = import.meta.env.VITE_AIRTABLE_ACCESS_TOKEN || import.meta.env.VITE_AIRTABLE_API_KEY || 'dummy_api_key_for_now';
+const apiKey = import.meta.env.VITE_AIRTABLE_PAT || import.meta.env.VITE_AIRTABLE_ACCESS_TOKEN || import.meta.env.VITE_AIRTABLE_API_KEY || 'dummy_api_key_for_now';
 const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID || 'dummy_base_id_for_now';
 
 if (apiKey === 'dummy_api_key_for_now' || baseId === 'dummy_base_id_for_now') {

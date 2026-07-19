@@ -27,7 +27,7 @@ export const CandidatesView: React.FC = () => {
 
   const handleDeleteCandidate = async (candidateId: string) => {
     try {
-      const apiKey = import.meta.env.VITE_AIRTABLE_ACCESS_TOKEN || import.meta.env.VITE_AIRTABLE_API_KEY;
+      const apiKey = import.meta.env.VITE_AIRTABLE_PAT || import.meta.env.VITE_AIRTABLE_ACCESS_TOKEN || import.meta.env.VITE_AIRTABLE_API_KEY;
       const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
       
       console.log(`Firing DELETE request for candidate: ${candidateId}`);

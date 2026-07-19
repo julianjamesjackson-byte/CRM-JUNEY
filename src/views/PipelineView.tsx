@@ -55,7 +55,7 @@ export const PipelineView: React.FC = () => {
 
     setIsUpdating(true);
     try {
-      const apiKey = import.meta.env.VITE_AIRTABLE_ACCESS_TOKEN || import.meta.env.VITE_AIRTABLE_API_KEY;
+      const apiKey = import.meta.env.VITE_AIRTABLE_PAT || import.meta.env.VITE_AIRTABLE_ACCESS_TOKEN || import.meta.env.VITE_AIRTABLE_API_KEY;
       const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID;
       
       const response = await fetch(`https://api.airtable.com/v0/${baseId}/Clinicians%20%26%20Candidates/${draggableId}`, {
