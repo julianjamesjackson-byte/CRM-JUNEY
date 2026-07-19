@@ -158,7 +158,7 @@ export const PairingView: React.FC = () => {
   }
 
   return (
-    <div className="p-8 max-w-[1600px] mx-auto h-full flex flex-col animate-in fade-in duration-500">
+    <div className="p-4 md:p-8 max-w-[1600px] mx-auto h-full flex flex-col animate-in fade-in duration-500">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900 mb-2">Smart Pairing Engine</h1>
         <p className="text-slate-500">Intelligently match candidates with open job orders based on specialty.</p>
