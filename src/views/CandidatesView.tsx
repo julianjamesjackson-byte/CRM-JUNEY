@@ -154,7 +154,7 @@ export const CandidatesView: React.FC = () => {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: '100%', opacity: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 h-full w-[600px] bg-white shadow-2xl z-50 border-l border-slate-200 overflow-y-auto"
+              className="fixed top-0 right-0 h-full w-full md:w-[600px] bg-white shadow-2xl z-50 border-l border-slate-200 overflow-y-auto"
             >
               <div className="p-8">
                 <button 

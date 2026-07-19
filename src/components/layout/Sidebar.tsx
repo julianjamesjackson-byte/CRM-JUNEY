@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Building2, Users, KanbanSquare, Handshake, Link2, Menu, Sun, Moon, LogOut } from 'lucide-react';
+import { LayoutDashboard, Building2, Users, KanbanSquare, Handshake, Link2, Menu, Sun, Moon, LogOut, X } from 'lucide-react';
 import { useAuth } from "@clerk/clerk-react";
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -19,9 +19,10 @@ const navItems = [
 interface SidebarProps {
   isCollapsed: boolean;
   toggleCollapse: () => void;
+  closeMobile?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleCollapse }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleCollapse, closeMobile }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const { signOut } = useAuth();
@@ -59,7 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleCollapse })
   return (
     <div 
       className={cn(
-        "bg-white border-r border-slate-200 h-screen flex flex-col fixed left-0 top-0 transition-all duration-300 z-50",
+        "bg-white dark:bg-neutral-900 border-r border-slate-200 dark:border-neutral-800 h-[100dvh] flex flex-col transition-all duration-300 z-50",
         isExpanded ? "w-64 shadow-2xl shadow-slate-900/10" : "w-20"
       )}
       onMouseEnter={() => setIsHovered(true)}
@@ -67,18 +68,27 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleCollapse })
     >
       <div className="px-4 py-4 md:px-5 md:py-5 border-b border-slate-100 flex items-center justify-between min-h-[88px] relative">
         {isExpanded ? (
-          <div className="flex items-center gap-2 pr-1">
-            <div className="shrink-0 flex items-center justify-center w-10 h-10">
-              <img src="/logo.jpeg" alt="Argyle" className="w-full h-full object-contain" />
+          <div className="flex items-center justify-between w-full pr-1">
+            <div className="flex items-center gap-2">
+              <div className="shrink-0 flex items-center justify-center w-10 h-10">
+                <img src="/logo.jpeg" alt="Argyle" className="w-full h-full object-contain" />
+              </div>
+              <div className="flex flex-col justify-center">
+                <span className="text-2xl font-bold font-serif leading-none pb-0.5 text-black">
+                  Argyle
+                </span>
+                <span className="text-[9.5px] uppercase tracking-widest font-medium mt-1 leading-none text-black whitespace-nowrap">
+                  Medical Staffing
+                </span>
+              </div>
             </div>
-            <div className="flex flex-col justify-center">
-              <span className="text-2xl font-bold font-serif leading-none pb-0.5 text-black">
-                Argyle
-              </span>
-              <span className="text-[9.5px] uppercase tracking-widest font-medium mt-1 leading-none text-black whitespace-nowrap">
-                Medical Staffing
-              </span>
-            </div>
+            {/* Mobile close button */}
+            <button 
+              onClick={closeMobile}
+              className="md:hidden p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-neutral-800 dark:text-slate-500"
+            >
+              <X size={20} />
+            </button>
           </div>
         ) : (
           <div className="w-full flex justify-center">
@@ -86,10 +96,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleCollapse })
           </div>
         )}
         
+        {/* Desktop collapse button */}
         <button 
           onClick={handleToggle} 
           className={cn(
-            "p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors shrink-0",
+            "hidden md:block p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors shrink-0",
             !isExpanded && "absolute left-1/2 -translate-x-1/2"
           )}
         >
@@ -103,6 +114,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, toggleCollapse })
             key={item.path}
             to={item.path}
             title={!isExpanded ? item.label : undefined}
+            onClick={() => closeMobile && closeMobile()}
             className={({ isActive }) => cn(
               "flex items-center gap-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 overflow-hidden",
               isActive 
